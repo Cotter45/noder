@@ -13,7 +13,10 @@ import type { IRequest, IResponse } from './types';
 /**
  * The main server class
  * @param config - The server configuration object
- * @param config.dbUrl - The database url. Required.
+ * @param config.port - The port you want to use. Default 8000.
+ * @param config.host - The host you want to use. Default 0.0.0.0.
+ * @param config.db - The database you want to use. No default.
+ * @param config.emitter - The event emitter you want to use. No default.
  */
 export class Server {
   declare routers: Map<string, Router>;
@@ -22,6 +25,7 @@ export class Server {
   declare dbPool: any;
   declare logger: any;
   declare static: any;
+  declare emitter: any;
 
   constructor(config: { [key: string]: any }) {
     this.routers = new Map();
@@ -29,6 +33,7 @@ export class Server {
     this.config = config;
     this.dbPool = config.db;
     this.static = 'public';
+    this.emitter = config.eventEmitter;
     this.logger = logger();
   }
 
@@ -155,11 +160,17 @@ export class Server {
     } catch (e: any) {
       return {
         status: 500,
-        body: 'Internal Server Error',
+        message: 'Internal Server Error.',
+        errorMessage: e.message,
       };
     }
   }
 
+  /**
+   * Required to start the server, will listen on the port and host provided or the dafaults.
+   * @param port - Defauls to 8000
+   * @param host - Defaults to 0.0.0.0
+   */
   async listen(port?: number, host?: string) {
     const server = http.createServer(async (request: any, response: any) => {
       let middlewareDone = false;
@@ -183,19 +194,16 @@ export class Server {
           );
           if (result) {
             response.statusCode = result.status || 500;
-            result.status ? delete result.status : null;
             response.end(
               JSON.stringify({
-                status: result.status || 500,
-                message: 'There was an error at server level.',
-                data: result,
+                message: result.message || 'Internal Server Error.',
               }),
             );
             this.logger.info({
               method: request.method,
               url: request.url,
               status: result.status || response.statusCode,
-              data: result,
+              error: result.errorMessage,
             });
             return;
           }
@@ -219,22 +227,21 @@ export class Server {
             db: this.dbPool,
             config: this.config,
             logger: this.logger,
+            event: this.emitter,
           };
 
           const router = this.routers.get('/' + routerPath);
           if (router) {
             const result = await router.execute(ctx);
             if (result) {
-              if (this.config.env !== 'production' || result.status >= 400) {
-                this.logger.info({
-                  url: req.url,
-                  method: req.method,
-                  status: result.status,
-                  requestId: req.requestId,
-                  message: result.message,
-                  data: result.data,
-                });
-              }
+              this.logger.info({
+                url: req.url,
+                method: req.method,
+                status: result.status,
+                requestId: req.requestId,
+                message: result.message,
+                data: result.data,
+              });
               if (result.alreadySent) return;
               return ctx.res.status(result.status || 200).json(result);
             }
@@ -242,7 +249,7 @@ export class Server {
         }
 
         new NotFoundError(req, res);
-        this.logger.info({
+        this.logger.error({
           method: req.method,
           url: req.url,
           status: 404,
@@ -253,13 +260,7 @@ export class Server {
       } catch (e: any) {
         response.statusCode = 500;
         response.end('Internal Server Error');
-
-        this.logger.info({
-          method: request.method,
-          url: request.url,
-          status: 500,
-          message: e.message || 'Internal Server Error',
-        });
+        this.logger.error(e);
       }
     });
 
@@ -273,6 +274,9 @@ export class Server {
         );
       },
     );
+
+    server.keepAliveTimeout = 60 * 1000 + 1000;
+    server.headersTimeout = 60 * 1000 + 2000;
 
     return server;
   }
