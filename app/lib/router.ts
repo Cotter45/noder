@@ -406,6 +406,7 @@ export class Router {
         return result;
       }
     } catch (e: any) {
+      ctx.logger.error(e);
       return new ServerError(ctx.req, ctx.res, e.message);
     }
   }

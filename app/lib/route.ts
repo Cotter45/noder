@@ -100,6 +100,7 @@ export class Route {
         alreadySent: true,
       };
     } catch (e: any) {
+      ctx.logger.error(e);
       return new ServerError(ctx.req, ctx.res, e.message);
     }
   }
