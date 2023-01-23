@@ -9,8 +9,8 @@ export const Request = (req: IncomingMessage, body?: any) => {
 
   return {
     ...req,
-    method: req.method || '',
-    url: req.url ? parsedUrl.pathname || '' : '',
+    method: req.method || 'GET',
+    url: req.url ? parsedUrl.pathname || '/' : '/',
     headers: req.headers || {},
     query: parsedUrl.query ? parsedUrl.query : {},
     body: body || {},

@@ -1,4 +1,4 @@
-import { Router, NotFoundError, ServerError } from '.';
+import { Router, NotFoundError, ServerError, Route, Server } from '.';
 import { Request } from './request';
 import { Response } from './response';
 import type { ICtx } from './types';
@@ -281,22 +281,94 @@ describe('Errors', () => {
 
 describe('Request', () => {
   it('should return a request object', () => {
-    const req = Request(
-      {
-        method: 'GET',
-        url: '/test?test=1',
-      } as any,
-      { test: 'test' } as any,
-    );
+    const req = Request({
+      method: 'GET',
+      url: '/test',
+    } as any);
+
+    expect(req).toBeDefined();
+    expect(req.method).toBe('GET');
+    expect(req.url).toBe('/test');
+    expect(req.query).toEqual({});
+    expect(req.body).toStrictEqual({});
+    expect(req.requestId).toBeDefined();
+  });
+
+  it('should parse query params', () => {
+    const req = Request({
+      method: 'GET',
+      url: '/test?test=1&test2=2',
+    } as any);
 
     expect(req).toBeDefined();
     expect(req.method).toBe('GET');
     expect(req.url).toBe('/test');
     expect(req.query).toEqual({
       test: '1',
+      test2: '2',
     });
+    expect(req.body).toStrictEqual({});
+    expect(req.requestId).toBeDefined();
+  });
+
+  it('should parse body params', () => {
+    const req = Request(
+      {
+        method: 'GET',
+        url: '/test',
+      } as any,
+      {
+        test: 1,
+        test2: 2,
+      },
+    );
+
+    expect(req).toBeDefined();
+    expect(req.method).toBe('GET');
+    expect(req.url).toBe('/test');
+    expect(req.query).toEqual({});
     expect(req.body).toStrictEqual({
-      test: 'test',
+      test: 1,
+      test2: 2,
+    });
+    expect(req.requestId).toBeDefined();
+  });
+
+  it('should handle no url', () => {
+    const req = Request(
+      {
+        method: 'GET',
+      } as any,
+      {
+        test: 1,
+        test2: 2,
+      },
+    );
+
+    expect(req).toBeDefined();
+    expect(req.method).toBe('GET');
+    expect(req.url).toBe('/');
+    expect(req.query).toEqual({});
+    expect(req.body).toStrictEqual({
+      test: 1,
+      test2: 2,
+    });
+    expect(req.requestId).toBeDefined();
+  });
+
+  it('should even handle no method', () => {
+    const req = Request({} as any, {
+      test: 1,
+      test2: 2,
+    });
+
+    expect(req).toBeDefined();
+    expect(req.method).toBe('GET');
+    expect(req.url).toBe('/');
+    expect(req.query).toEqual({});
+    expect(req.body).toStrictEqual({
+      test: 1,
+      test2: 2,
     });
     expect(req.requestId).toBeDefined();
   });
@@ -370,5 +442,183 @@ describe('Response', () => {
     res.json({ test: 'test' });
 
     expect(res.json({ test: 'test' })).toBe(res);
+  });
+});
+
+describe('Route', () => {
+  it('should return a route object', () => {
+    const route = new Route('/test', 'GET', [], () => {
+      return 'test';
+    });
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test');
+    expect(route.callback).toBeDefined();
+  });
+
+  it('should return a route object with a path param', () => {
+    const route = new Route('/test/:id', 'GET', [], () => {
+      return 'test';
+    });
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test/:id');
+    expect(route.callback).toBeDefined();
+  });
+
+  it('should handle middleware', async () => {
+    const route = new Route(
+      '/test',
+      'GET',
+      [
+        (req: any, res: any, next: any) => {
+          next();
+        },
+      ],
+      () => {
+        return 'test';
+      },
+    );
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test');
+    expect(route.middleware.length).toBe(1);
+    expect(route.callback).toBeDefined();
+
+    const result = await route.execute({} as any);
+
+    expect(result).toBe('test');
+  });
+
+  it('should handle returns from middleware', async () => {
+    const route = new Route(
+      '/test',
+      'GET',
+      [
+        () => {
+          return 'middleware test';
+        },
+      ],
+      () => {
+        return 'test';
+      },
+    );
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test');
+    expect(route.middleware.length).toBe(1);
+    expect(route.callback).toBeDefined();
+
+    const result = await route.execute({} as any);
+
+    expect(result).toBe('middleware test');
+  });
+
+  it('should handle errors in middleware', async () => {
+    const route = new Route(
+      '/test',
+      'GET',
+      [
+        () => {
+          throw new Error('test');
+        },
+      ],
+      () => {
+        return 'test';
+      },
+    );
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test');
+    expect(route.middleware.length).toBe(1);
+    expect(route.callback).toBeDefined();
+
+    const result = await route.execute({
+      req: {
+        requestId: 'test',
+      },
+      res: {
+        status: () => {
+          return {
+            json: jest.fn(),
+          };
+        },
+        json: jest.fn(),
+      },
+    } as any);
+
+    expect(result).toBeInstanceOf(Error);
+  });
+
+  it('should handle returns with ctx', async () => {
+    const route = new Route(
+      '/test',
+      'GET',
+      [
+        (req: any, res: any, next: any) => {
+          next();
+        },
+      ],
+      (ctx: any) => {
+        ctx.res.json({ test: 'test' });
+      },
+    );
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test');
+    expect(route.middleware.length).toBe(1);
+    expect(route.callback).toBeDefined();
+
+    const result = await route.execute({
+      req: {},
+      res: {
+        res: {
+          statusCode: '',
+        },
+        json: jest.fn((data: any) => JSON.stringify(data)),
+      },
+    } as any);
+
+    expect(result).toStrictEqual({
+      alreadySent: true,
+      status: '',
+    });
+  });
+
+  it('should handle errors in route', async () => {
+    const route = new Route('/test', 'GET', [], () => {
+      throw new Error('test');
+    });
+
+    expect(route).toBeDefined();
+    expect(route.method).toBe('GET');
+    expect(route.path).toBe('/test');
+    expect(route.middleware.length).toBe(0);
+    expect(route.callback).toBeDefined();
+
+    const result = await route.execute({
+      req: {
+        requestId: 'test',
+      },
+      res: {
+        status: () => {
+          return {
+            json: jest.fn(),
+          };
+        },
+        json: jest.fn(),
+      },
+      logger: {
+        error: jest.fn(),
+      },
+    } as any);
+
+    expect(result).toBeInstanceOf(Error);
   });
 });
