@@ -7,5 +7,7 @@ export const initConfig = () => {
   return {
     db,
     eventEmitter,
+    keepAliveTimeout: 60000,
+    headersTimeout: 60000,
   };
 };
