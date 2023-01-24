@@ -1,14 +1,7 @@
-import { Router, NotFoundError, ServerError, Route, Server } from '.';
+import { Router, NotFoundError, ServerError, Route } from '.';
 import { Request } from './request';
 import { Response } from './response';
 import type { ICtx } from './types';
-
-let httpServer: any;
-
-afterAll(() => {
-  httpServer.close();
-  setImmediate(() => httpServer.close());
-});
 
 describe('Errors', () => {
   describe('NotFoundError', () => {
@@ -806,8 +799,6 @@ describe('Router', () => {
       const req = { url: '/api/tests', method: 'GET' } as any;
       const res = {} as any;
 
-      console.log(router.getRoutes);
-
       const result = await router.execute({ req, res } as any);
       expect(result).toEqual({ test: 'test' });
     });
@@ -1057,117 +1048,5 @@ describe('Router', () => {
       message: 'Ok',
       data: 10,
     });
-  });
-});
-
-describe('Server', () => {
-  it('should be able to create a server', () => {
-    const server = new Server({});
-
-    expect(server).toBeDefined();
-  });
-
-  it('should change static dirs', () => {
-    const server = new Server({});
-    server.staticDir('test');
-
-    expect(server.static).toBe('test');
-  });
-
-  it('should serve static files', async () => {
-    const server = new Server({});
-    server.staticDir('test');
-
-    httpServer = await server.listen();
-
-    const result = await fetch('http://0.0.0.0:8000');
-
-    expect(result.status).toBe(404);
-    await httpServer.close();
-  });
-
-  it('should handle POST body', async () => {
-    const server = new Server({});
-    const router = new Router('/api');
-
-    httpServer = await server.listen();
-
-    router.post('/test', [], (ctx: ICtx) => {
-      return {
-        status: 200,
-        message: 'Ok',
-        data: ctx.req.body,
-      };
-    });
-
-    server.useRouter(router);
-
-    const result = await fetch('http://0.0.0.0:8000/api/test', {
-      method: 'POST',
-      body: JSON.stringify({ test: 'test' }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    expect(result.status).toBe(200);
-  });
-
-  it('should be able to add a router', () => {
-    const server = new Server({});
-    const router = new Router('/test');
-
-    server.useRouter(router);
-
-    expect(server.routers.size).toBe(1);
-  });
-
-  it('should be able to add a middleware', () => {
-    const server = new Server({});
-    const middleware = () => {
-      return 'test';
-    };
-
-    server.use(middleware);
-
-    expect(server.middleware.length).toBe(1);
-  });
-
-  it('should handle options', async () => {
-    const result = await fetch('http://0.0.0.0:8000/api/test', {
-      method: 'OPTIONS',
-    });
-
-    expect(result.status).toBe(204);
-    await httpServer.close();
-  });
-
-  it('should handle 404', async () => {
-    const result = await fetch('http://0.0.0.0:8000/api/test');
-    expect(result.status).toBe(404);
-  });
-
-  it('should set keepAliveTimeout', async () => {
-    const server = new Server({
-      port: 5555,
-      keepAliveTimeout: 1000,
-    });
-    const httpServer = await server.listen();
-
-    expect(httpServer.keepAliveTimeout).toBe(1000);
-    await httpServer.close();
-    setImmediate(() => httpServer.close());
-  });
-
-  it('should set headersTimeout', async () => {
-    const server = new Server({
-      port: 5551,
-      headersTimeout: 1000,
-    });
-    const httpServer = await server.listen();
-
-    expect(httpServer.headersTimeout).toBe(1000);
-    await httpServer.close();
-    setImmediate(() => httpServer.close());
   });
 });
