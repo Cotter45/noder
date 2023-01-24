@@ -12,8 +12,8 @@
     "lint": "eslint --ext .ts ./app --fix",
     "lint:check": "eslint --ext .ts ./app",
     "start": "export NODE_ENV=production && node ./dist/app/index.js",
-    "test": "jest --watchAll=true",
-    "test:coverage": "jest --coverage --watchAll=false",
+    "test": "jest --watchAll=true --detectOpenHandles",
+    "test:coverage": "jest --coverage --watchAll=false --detectOpenHandles",
     "update": "ncu -u && npm install"
   },
   "dependencies": {

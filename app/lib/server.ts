@@ -26,6 +26,8 @@ export class Server {
   declare logger: any;
   declare static: any;
   declare emitter: any;
+  declare keepAliveTimeout: number;
+  declare headersTimeout: number;
 
   constructor(config: { [key: string]: any }) {
     this.routers = new Map();
@@ -35,6 +37,8 @@ export class Server {
     this.static = 'public';
     this.emitter = config.eventEmitter;
     this.logger = logger();
+    this.keepAliveTimeout = config.keepAliveTimeout;
+    this.headersTimeout = config.headersTimeout;
   }
 
   /**
@@ -172,97 +176,99 @@ export class Server {
    * @param host - Defaults to 0.0.0.0
    */
   async listen(port?: number, host?: string) {
-    const server = http.createServer(async (request: any, response: any) => {
-      let middlewareDone = false;
-      let req: IRequest;
-      let res: IResponse;
+    const server = await http.createServer(
+      async (request: any, response: any) => {
+        let middlewareDone = false;
+        let req: IRequest;
+        let res: IResponse;
 
-      try {
-        if (request.method === 'OPTIONS') {
-          response.writeHead(204, request.headers);
-          response.end();
-          return;
-        }
-
-        const body = await this.bodyParser(request);
-
-        if (!middlewareDone && this.middleware.length) {
-          const result: any = await this.executeMiddleware(
-            this.middleware,
-            request,
-            response,
-          );
-          if (result) {
-            response.statusCode = result.status || 500;
-            response.end(
-              JSON.stringify({
-                message: result.message || 'Internal Server Error.',
-              }),
-            );
-            this.logger.info({
-              method: request.method,
-              url: request.url,
-              status: result.status || response.statusCode,
-              error: result.errorMessage,
-            });
+        try {
+          if (request.method === 'OPTIONS') {
+            response.writeHead(204, request.headers);
+            response.end();
             return;
           }
-          middlewareDone = true;
-        }
 
-        if (this.static && request.url && !request.url.includes('/api')) {
-          this.serveStatic(request, response);
-          return;
-        }
+          const body = await this.bodyParser(request);
 
-        req = Request(request, body);
-        res = new Response(req, response);
-
-        const routerPath = req.url.split('/')[1];
-
-        if (this.routers.has('/' + routerPath)) {
-          const ctx = {
-            req,
-            res,
-            db: this.dbPool,
-            config: this.config,
-            logger: this.logger,
-            event: this.emitter,
-          };
-
-          const router = this.routers.get('/' + routerPath);
-          if (router) {
-            const result = await router.execute(ctx);
+          if (!middlewareDone && this.middleware.length) {
+            const result: any = await this.executeMiddleware(
+              this.middleware,
+              request,
+              response,
+            );
             if (result) {
+              response.statusCode = result.status || 500;
+              response.end(
+                JSON.stringify({
+                  message: result.message || 'Internal Server Error.',
+                }),
+              );
               this.logger.info({
-                url: req.url,
-                method: req.method,
-                status: result.status,
-                requestId: req.requestId,
-                message: result.message,
-                data: result.data,
+                method: request.method,
+                url: request.url,
+                status: result.status || response.statusCode,
+                error: result.errorMessage,
               });
-              if (result.alreadySent) return;
-              return ctx.res.status(result.status || 200).json(result);
+              return;
+            }
+            middlewareDone = true;
+          }
+
+          if (this.static && request.url && !request.url.includes('/api')) {
+            this.serveStatic(request, response);
+            return;
+          }
+
+          req = Request(request, body);
+          res = new Response(req, response);
+
+          const routerPath = req.url.split('/')[1];
+
+          if (this.routers.has('/' + routerPath)) {
+            const ctx = {
+              req,
+              res,
+              db: this.dbPool,
+              config: this.config,
+              logger: this.logger,
+              event: this.emitter,
+            };
+
+            const router = this.routers.get('/' + routerPath);
+            if (router) {
+              const result = await router.execute(ctx);
+              if (result) {
+                this.logger.info({
+                  url: req.url,
+                  method: req.method,
+                  status: result.status,
+                  requestId: req.requestId,
+                  message: result.message,
+                  data: result.data,
+                });
+                if (result.alreadySent) return;
+                return ctx.res.status(result.status || 200).json(result);
+              }
             }
           }
-        }
 
-        new NotFoundError(req, res);
-        this.logger.error({
-          method: req.method,
-          url: req.url,
-          status: 404,
-          requestId: req.requestId,
-          message: 'Not Found',
-        });
-        return;
-      } catch (e: any) {
-        response.statusCode = 500;
-        response.end('Internal Server Error');
-        this.logger.error(e);
-      }
-    });
+          new NotFoundError(req, res);
+          this.logger.error({
+            method: req.method,
+            url: req.url,
+            status: 404,
+            requestId: req.requestId,
+            message: 'Not Found',
+          });
+          return;
+        } catch (e: any) {
+          response.statusCode = 500;
+          response.end('Internal Server Error');
+          this.logger.error(e);
+        }
+      },
+    );
 
     server.listen(
       port || this.config.port || 8000,
@@ -275,8 +281,13 @@ export class Server {
       },
     );
 
-    server.keepAliveTimeout = 60 * 1000 + 1000;
-    server.headersTimeout = 60 * 1000 + 2000;
+    if (this.keepAliveTimeout) {
+      server.keepAliveTimeout = this.keepAliveTimeout;
+    }
+
+    if (this.headersTimeout) {
+      server.headersTimeout = this.headersTimeout;
+    }
 
     return server;
   }
