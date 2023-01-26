@@ -9,7 +9,7 @@ const config = initConfig();
  */
 const server = new Server(config);
 
-server.staticDir('build');
+// server.staticDir('build');
 
 server.useRouter(apiRouter);
 server.listen();
