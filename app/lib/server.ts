@@ -28,6 +28,7 @@ export class Server {
   declare emitter: any;
   declare keepAliveTimeout: number;
   declare headersTimeout: number;
+  declare staticFileMap: { [key: string]: string };
 
   constructor(config: { [key: string]: any }) {
     this.routers = new Map();
@@ -39,6 +40,7 @@ export class Server {
     this.logger = logger();
     this.keepAliveTimeout = config.keepAliveTimeout;
     this.headersTimeout = config.headersTimeout;
+    this.setUpStaticFileMap();
   }
 
   /**
@@ -47,6 +49,41 @@ export class Server {
    */
   staticDir = (dir: string) => {
     this.static = dir;
+    this.setUpStaticFileMap(dir);
+  };
+
+  private setUpStaticFileMap = (dir?: string) => {
+    const staticPath = `app/${dir || this.static}`;
+
+    const getFiles = (dir: string) => {
+      const files = fs.readdirSync(dir);
+      const allFiles: string[] = [];
+
+      files.forEach((file) => {
+        const filePath = `${dir}/${file}`;
+        const isDirectory = fs.statSync(filePath).isDirectory();
+
+        if (isDirectory) {
+          allFiles.push(...getFiles(filePath));
+        } else {
+          allFiles.push(filePath);
+        }
+      });
+
+      return allFiles;
+    };
+
+    if (fs.existsSync(staticPath)) {
+      this.staticFileMap = getFiles(staticPath).reduce(
+        (acc: any, file: string) => {
+          const filePath = file.replace(staticPath, '');
+          acc[filePath] = file;
+          return acc;
+        },
+        {},
+      );
+    }
+    console.log(this.staticFileMap);
   };
 
   private serveStatic = (
@@ -59,6 +96,13 @@ export class Server {
     const extname = filePath
       ? String(path.extname(filePath)).toLowerCase()
       : '.html';
+
+    if (!filePath) {
+      res.writeHead(404);
+      res.end(`Sorry, check with the site admin for error: ${res.statusCode}`);
+      res.end();
+      return;
+    }
     const mimeTypes: { [key: string]: string } = {
       '.html': 'text/html',
       '.js': 'text/javascript',
@@ -79,7 +123,9 @@ export class Server {
 
     const contentType = mimeTypes[extname] || 'application/octet-stream';
 
-    fs.readFile(`app/${this.static}${filePath}`, (error, content) => {
+    const file = this.staticFileMap[filePath];
+
+    fs.readFile(file, (error, content) => {
       if (error) {
         if (error.code === 'ENOENT') {
           res.writeHead(404);
