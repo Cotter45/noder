@@ -83,7 +83,6 @@ export class Server {
         {},
       );
     }
-    console.log(this.staticFileMap);
   };
 
   private serveStatic = (
