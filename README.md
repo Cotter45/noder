@@ -22,31 +22,88 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 ## Features
 - Basic HTTP server
   - Handles OPTIONS, GET, POST, PUT, PATCH, DELETE
-  - ![Server Setup](./deleteMe/server.png)
+```typescript
+  import { Server } from './lib';
+  import { initConfig } from './config';
+  import apiRouter from './routes';
+
+  const config = initConfig();
+
+  const server = new Server(config);
+
+  server.use(apiRouter);
+  server.listen();
+```
 - Basic routing
   - In the same style as Express.js
-  - ![Routing Use](./deleteMe/routing.png)
+```typescript
+  apiRouter.get('/', [], (ctx: ICtx) => {
+    ctx.res.status(200).json({
+      message: 'Hello World'
+    });
+  });
+```
 - One param per route
   - This could be expanded but is a personal preference to avoid complex routes
-  - ![One Param](./deleteMe/oneParam.png)
+```typescript
+  apiRouter.get('/:hello', [], (ctx: ICtx) => {
+    return {
+      message: `Hello ${ctx.req.params.hello}`
+    };
+  });
+```
 - Middleware
   - Works with most Express.js middleware, though I can't guarantee it will work with all of them. Middleware at the server level takes the http incoming message and server respone but at the router or route level it uses the extended types. Returning from middleware will short circuit the rest of the middleware and the route.
-  - ![Middleware](./deleteMe/teapot.png)
+```typescript
+  apiRouter.use(() => {
+    return {
+      status: 418,
+      message: "I'm a teapot"
+    };
+  });
+```
 - Logging
   - Uses pino for logging
-  - ![Logging](./deleteMe/logging.png)
+```typescript
+  apiRouter.get('/', [], (ctx: ICtx) => {
+    ctx.logger.info('TEST');
+    ctx.res.status(200).json({
+      message: 'Hello World'
+    });
+  });
+```
 - Error handling
   - The framework should catch all errors and log them, but you can also add your own error handling inside the callbacks or middleware.
-  - ![Error Handling](./deleteMe/err.png)
+```typescript
+  apiRouter.get('/', [], (ctx: ICtx) => {
+    return new NotFoundError(ctx.req, ctx.res);
+  });
+```
 - Static file serving
   - Uses 'public' dir by default but can be set to any dir inside the 'app' dir.
-  - ![Static Files](./deleteMe/static.png)
+```typescript
+  server.staticDir('build'); // folder inside app dir
+```
 - Basic body parsing
   - Supports JSON
-  - ![Body Parsing](./deleteMe/body.png)
+```typescript
+  apiRouter.get('/', [], (ctx: ICtx) => {
+    ctx.res.status(200).json(ctx.req.body); // returns { "hello": "world" }
+  });
+```
 - Basic query string parsing
   - Parses query strings into an object
-  - ![Query String](./deleteMe/query.png)
+```typescript
+  apiRouter.get('/', [], (ctx: ICtx) => {
+    ctx.res.status(200).json({
+      message: 'Hello World'
+    });
+    /**
+     * GET /api/test?hello=world
+     * returns { "hello": "world" }
+     */
+  });
+```
 
 
 ## How to use
