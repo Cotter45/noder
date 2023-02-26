@@ -9,7 +9,7 @@ import { Response } from './response';
 import { Router } from './router';
 import { executeMiddleware } from './executeMiddleware';
 
-import type { IRequest, IResponse } from './types';
+import type { ICtx, IRequest, IResponse } from './types';
 
 /**
  * The main server class
@@ -23,7 +23,7 @@ export class Server {
   declare routers: Map<string, Router>;
   declare middleware: any[];
   declare config: { [key: string]: any };
-  declare dbPool: any;
+  declare ctx: { [key: string]: any };
   declare logger: any;
   declare static: any;
   declare emitter: any;
@@ -34,8 +34,9 @@ export class Server {
   constructor(config: { [key: string]: any }) {
     this.routers = new Map();
     this.middleware = [];
+    this.ctx = config.ctx;
+    delete config.ctx;
     this.config = config;
-    this.dbPool = config.db;
     this.static = 'public';
     this.emitter = config.eventEmitter;
     this.logger = logger();
@@ -241,13 +242,12 @@ export class Server {
           const routerPath = req.url.split('/')[1];
 
           if (this.routers.has('/' + routerPath)) {
-            const ctx = {
+            const ctx: ICtx = {
               req,
               res,
-              db: this.dbPool,
               config: this.config,
               logger: this.logger,
-              event: this.emitter,
+              ...this.ctx,
             };
 
             const router = this.routers.get('/' + routerPath);

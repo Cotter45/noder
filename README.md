@@ -10,6 +10,10 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 
 - Simple and easy to use
   - Works essentially the same as Express.js
+  - Some notable differences
+    - routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers.
+    - Routes can only have one param
+    - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, logger, config and whatever else you want to add to it through the initConfig() function.
 - Lightweight
   - Only 2 dependencies
     - pino for logging
@@ -17,6 +21,12 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 - Works with **MOST** Express.js middleware
   - I've tested it with a few different options, though I can't guarantee it will work with all of them
 - Easy to add your own middleware
+- Small script included to generate boilerplate controllers, handlers, tests and validators for a resource
+  - run with
+    - ```npm run generate```
+  - The script will prompt you for the name of the resource
+  - It will then create all folders and files for basic CRUD inside the routes dir
+  - It will NOT automagically add this new router / resource to the main router
 - FAST 
   - wrk -t4 -c300 -d30s http://localhost:8000/api
 ```typescript

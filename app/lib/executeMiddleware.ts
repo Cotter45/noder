@@ -5,8 +5,6 @@ export async function executeMiddleware(
   req: IRequest,
   res: IResponse,
 ): Promise<any> {
-  if (!middleware.length) return false;
-
   function* middlewareGenerator(middleware: any[]) {
     for (const func of middleware) {
       yield func;
