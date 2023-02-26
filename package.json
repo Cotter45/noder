@@ -1,7 +1,7 @@
 {
   "name": "@cotter45/noderjs",
   "author": "Sean Cotter <cotter.github45@gmail.com>",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index",
@@ -44,7 +44,6 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
-    "@cotter45/noderjs": "^0.0.4",
     "pino": "^8.11.0",
     "uuid": "^9.0.0"
   },
