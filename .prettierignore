@@ -1,4 +1,6 @@
 node_modules
+coverage
+.github
 
 /build
 /public/build

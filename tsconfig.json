@@ -8,6 +8,5 @@
     "strict": true,
     "removeComments": true,
     "esModuleInterop": true
-  },
-  "include": ["app/**/*.ts"]
+  }
 }
