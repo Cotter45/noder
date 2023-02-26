@@ -25,6 +25,7 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
   - I've tested it with a few different options, though I can't guarantee it will work with all of them
 - Easy to add your own middleware
 - Small script included to generate boilerplate controllers, handlers, tests and validators for a resource
+  - THIS WILL ONLY WORK WITH THE GITHUB TEMPLATE, NOT THE NPM PACKAGE
   - run with
     - ```npm run generate```
   - The script will prompt you for the name of the resource
@@ -140,21 +141,12 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 ## How to use
 However you'd like. The infrastructure is there to use it in a similar fashion to how I would. There are a few basic example routes inside the routes/index.ts. Feel free to reach out with any questions.
 
-### Basic / Development
-1. Clone the repo
-2. Run `npm install`
-3. Run `npm run dev`
-
-### Production **(Not recommended)**
-1. Clone the repo
-2. Run `npm install`
-3. Run `npm run build`
-4. Run `npm run start`
-- There is also a dockerfile included if you prefer containerization
+There is also a dockerfile included if you prefer containerization
   - docker-compose up --build -d
   - If you're using a windows machine just change line 11 of the dockerfile from npm ci to npm i 
 
 ## TODO
+- [ ] Convert the generate script to work from node_modules
 - [ ] Add more tests
 - [ ] Add more documentation
 - [ ] Test with more databases
