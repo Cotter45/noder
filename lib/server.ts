@@ -30,7 +30,7 @@ export class Server {
   declare headersTimeout: number;
   declare staticFileMap: { [key: string]: string };
 
-  constructor(config: { [key: string]: any }) {
+  constructor(config: { [key: string]: any } = {}) {
     this.routers = new Map();
     this.middleware = [];
     if (config.ctx) {
