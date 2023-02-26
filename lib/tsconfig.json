@@ -7,10 +7,6 @@
     "strict": true,
     "declaration": true
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "**/*.spec.ts",
-  ]
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.spec.ts"]
 }
