@@ -44,6 +44,7 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
+    "@cotter45/noderjs": "^0.0.4",
     "pino": "^8.11.0",
     "uuid": "^9.0.0"
   },

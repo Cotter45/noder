@@ -1,4 +1,4 @@
-import { Server } from '../lib';
+import { Server } from '@cotter45/noderjs';
 import { initConfig } from './config';
 import apiRouter from './routes';
 
