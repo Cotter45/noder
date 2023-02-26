@@ -1,10 +1,10 @@
 {
   "name": "@cotter45/noderjs",
   "author": "Sean Cotter <cotter.github45@gmail.com>",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/index.js",
-  "types": "dist/types.ts",
+  "types": "dist/index",
   "respository": {
     "type": "git",
     "url": "https://github.com/Cotter45/noder.git"
