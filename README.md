@@ -3,8 +3,11 @@
 ## What is Noder.js?
 Noder.js is what I'm calling this github repo, you can call it whatever you'd like. This is a bit of a wrapper around a basic Node.js HTTP server. It works very similarly to Express.js but is much more lightweight and ever so slightly more opinionated. There are way to many to check, but so far it's worked with every Express middleware I've tried. It's also very easy to add your own middleware in the same style that Express.js uses.
 
-
 ***I would not recommend using this in production, it's just a fun little project I've been working on.*** Feel free to open PR's or use this project in any way that you see fit.
+
+## NPM
+- ```npm i @cotter45/noderjs```
+- https://www.npmjs.com/package/@cotter45/noderjs
 
 ## Highlights
 
@@ -45,13 +48,16 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 - Basic HTTP server
   - Handles OPTIONS, GET, POST, PUT, PATCH, DELETE
 ```typescript
-  import { Server } from './lib';
-  import { initConfig } from './config';
-  import apiRouter from './routes';
+  import { Server, Router } from '@cotter45/noderjs';
 
-  const config = initConfig();
+  const server = new Server();
+  const apiRouter = new Router('/api');
 
-  const server = new Server(config);
+  apiRouter.get('/', (ctx: ICtx) => {
+    ctx.res.status(200).json({
+      message: 'Hello World'
+    });
+  });
 
   server.use(apiRouter);
   server.listen();
