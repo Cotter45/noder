@@ -7,6 +7,7 @@ import { NotFoundError } from './errors';
 import { Request } from './request';
 import { Response } from './response';
 import { Router } from './router';
+import { executeMiddleware } from './executeMiddleware';
 
 import type { IRequest, IResponse } from './types';
 
@@ -176,43 +177,12 @@ export class Server {
     });
   };
 
-  private async executeMiddleware(
+  private async handleMiddleware(
     middleware: any[],
-    req: http.IncomingMessage,
-    res: http.ServerResponse,
+    req: IRequest,
+    res: IResponse,
   ): Promise<any> {
-    if (!middleware.length) return false;
-
-    function* middlewareGenerator(middleware: any[]) {
-      for (const func of middleware) {
-        yield func;
-      }
-    }
-
-    const middlewareIterator = middlewareGenerator(middleware);
-    let result: any;
-
-    const next = async () => {
-      const nextFunc = middlewareIterator.next();
-      if (!nextFunc.value) return false;
-      const response = await nextFunc.value(req, res, next);
-      if (response) result = response;
-      return result;
-    };
-
-    try {
-      const response = await next();
-      if (response) {
-        return response;
-      }
-      return false;
-    } catch (e: any) {
-      return {
-        status: 500,
-        message: 'Internal Server Error.',
-        errorMessage: e.message,
-      };
-    }
+    return await executeMiddleware(middleware, req, res);
   }
 
   /**
@@ -236,11 +206,14 @@ export class Server {
 
           const body = await this.bodyParser(request);
 
+          req = Request(request, body);
+          res = new Response(req, response);
+
           if (!middlewareDone && this.middleware.length) {
-            const result: any = await this.executeMiddleware(
+            const result: any = await this.handleMiddleware(
               this.middleware,
-              request,
-              response,
+              req,
+              res,
             );
             if (result) {
               response.statusCode = result.status || 500;
@@ -264,9 +237,6 @@ export class Server {
             this.serveStatic(request, response);
             return;
           }
-
-          req = Request(request, body);
-          res = new Response(req, response);
 
           const routerPath = req.url.split('/')[1];
 

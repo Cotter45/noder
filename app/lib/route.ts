@@ -1,4 +1,6 @@
 import { ServerError } from './errors';
+import { executeMiddleware } from './executeMiddleware';
+
 import type { ICtx, IRequest, IResponse } from './types';
 
 /**
@@ -41,44 +43,17 @@ export class Route {
     this.callback = callback;
   }
 
-  private async executeMiddleware(
+  private async handleMiddleware(
     middleware: any[],
     req: IRequest,
     res: IResponse,
   ): Promise<any> {
-    if (!middleware.length) return false;
-
-    function* middlewareGenerator(middleware: any[]) {
-      for (const func of middleware) {
-        yield func;
-      }
-    }
-
-    const middlewareIterator = middlewareGenerator(middleware);
-    let result: any;
-
-    const next = async () => {
-      const nextFunc = middlewareIterator.next();
-      if (!nextFunc.value) return false;
-      const response = await nextFunc.value(req, res, next);
-      if (response) result = response;
-      return result;
-    };
-
-    try {
-      const response = await next();
-      if (response) {
-        return response;
-      }
-      return false;
-    } catch (e: any) {
-      return new ServerError(req, res);
-    }
+    return await executeMiddleware(middleware, req, res);
   }
 
   async execute(ctx: ICtx) {
     if (this.middleware.length) {
-      const middlewareResult = await this.executeMiddleware(
+      const middlewareResult = await this.handleMiddleware(
         this.middleware,
         ctx.req,
         ctx.res,
