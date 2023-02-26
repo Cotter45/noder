@@ -5,11 +5,11 @@ module.exports = {
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/dist/',
-    '<rootDir>/app/lib/server.ts',
+    '<rootDir>/lib/server.ts',
   ],
   coveragePathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/dist/',
-    '<rootDir>/app/lib/server.ts',
+    '<rootDir>/lib/server.ts',
   ],
 };

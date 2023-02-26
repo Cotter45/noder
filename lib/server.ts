@@ -26,7 +26,6 @@ export class Server {
   declare ctx: { [key: string]: any };
   declare logger: any;
   declare static: any;
-  declare emitter: any;
   declare keepAliveTimeout: number;
   declare headersTimeout: number;
   declare staticFileMap: { [key: string]: string };
@@ -34,11 +33,12 @@ export class Server {
   constructor(config: { [key: string]: any }) {
     this.routers = new Map();
     this.middleware = [];
-    this.ctx = config.ctx;
-    delete config.ctx;
+    if (config.ctx) {
+      this.ctx = config.ctx;
+      delete config.ctx;
+    }
     this.config = config;
     this.static = 'public';
-    this.emitter = config.eventEmitter;
     this.logger = logger();
     this.keepAliveTimeout = config.keepAliveTimeout;
     this.headersTimeout = config.headersTimeout;

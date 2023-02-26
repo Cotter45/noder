@@ -1,6 +1,6 @@
-import { Router } from '../lib';
+import { Router } from '../../lib';
 
-import type { ICtx } from '../lib';
+import type { ICtx } from '../../lib/types';
 
 const apiRouter = new Router('/api');
 
