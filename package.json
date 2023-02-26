@@ -1,11 +1,29 @@
 {
   "name": "node_boiler",
   "author": "Sean Cotter <sd.cotter45@gmail.com>",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
-  "main": "dist/app/index.js",
+  "main": "lib/index.js",
+  "types": "lib/types.ts",
+  "respository": {
+    "type": "git",
+    "url": "https://github.com/Cotter45/noder.git"
+  },
+  "homepage": "https://github.com/Cotter45/noder",
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "typescript",
+    "boilerplate",
+    "REST",
+    "API"
+  ],
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "build": "tsc && cp -r ./package.json ./dist/package.json",
+    "build:release": "cd lib && tsc && cd .. && cp -r ./package.json ./dist/package.json",
     "dev": "export NODE_ENV=development && nodemon --exec ts-node ./app/index.ts",
     "format": "prettier --write '**/*.{ts,js,json}'",
     "format:check": "prettier --check '**/*.{ts,js,json}'",
@@ -15,7 +33,12 @@
     "start": "export NODE_ENV=production && node ./dist/app/index.js",
     "test": "jest --watchAll=true --detectOpenHandles",
     "test:coverage": "jest --coverage --watchAll=false --detectOpenHandles",
-    "update": "ncu -u && npm install"
+    "update": "ncu -u && npm install",
+    "prepare": "npm run build:release",
+    "prepublishOnly": "npm run test:coverage && npm run lint:check && npm run format:check",
+    "preversion": "npm run lint:check",
+    "version": "npm run format:check && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "dependencies": {
     "pino": "^8.11.0",

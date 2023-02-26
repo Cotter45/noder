@@ -1,4 +1,4 @@
-import { Router, NotFoundError, ServerError, Route } from '.';
+import { Router, NotFoundError, ServerError, Route } from './types';
 import { Request } from './request';
 import { Response } from './response';
 import type { ICtx } from './types';

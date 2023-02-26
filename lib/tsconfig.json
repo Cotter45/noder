@@ -2,14 +2,15 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "outDir": "dist",
+    "outDir": "../dist",
     "rootDir": ".",
-    "sourceMap": true,
     "strict": true,
-    "removeComments": true,
-    "esModuleInterop": true
+    "declaration": true
   },
   "include": [
-    "app/**/*.ts",
+    "**/*.ts"
   ],
+  "exclude": [
+    "**/*.spec.ts",
+  ]
 }
