@@ -43,12 +43,12 @@ export class Router {
    * @param path - The path of the router
    * @param router - The nested router to use
    */
-  useRouter(path: string, router: Router) {
-    path.includes('/')
-      ? this.routers.set(this.path + path, router)
-      : this.routers.set(this.path + '/' + path, router);
+  useRouter(router: Router) {
+    router.path.includes('/')
+      ? this.routers.set(this.path + router.path, router)
+      : this.routers.set(this.path + '/' + router.path, router);
 
-    router.updatePath(this.path + path);
+    router.updatePath(this.path + router.path);
   }
 
   private updatePath(path: string) {
@@ -62,25 +62,6 @@ export class Router {
    * @param callback - The callback function
    * @returns - void
    */
-  // get(path: string, middleware: any[], callback: any) {
-  //   if (path === '/') {
-  //     this.getRoutes.set(
-  //       this.path,
-  //       new Route(this.path, 'GET', middleware, callback),
-  //     );
-  //     return;
-  //   }
-
-  //   path.includes('/')
-  //     ? this.getRoutes.set(
-  //         this.path + path,
-  //         new Route(this.path + path, 'GET', middleware, callback),
-  //       )
-  //     : this.getRoutes.set(
-  //         this.path + '/' + path,
-  //         new Route(this.path + '/' + path, 'GET', middleware, callback),
-  //       );
-  // }
   get(path: string, ...args: any) {
     const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
     const callback = args.length > 1 ? args[args.length - 1] : args[0];

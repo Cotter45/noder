@@ -26,8 +26,7 @@ export interface INextFunction {
 export interface ICtx {
   req: IRequest;
   res: IResponse;
-  db: any;
   config: any;
-  user?: any;
-  logger?: any;
+  logger: any;
+  [key: string]: any;
 }

@@ -828,7 +828,7 @@ describe('Router', () => {
   it('should be able to add a router', () => {
     const router = new Router('/');
     const subRouter = new Router('/test');
-    router.useRouter('/test', subRouter);
+    router.useRouter(subRouter);
 
     expect(router.routers.size).toBe(1);
   });
@@ -991,7 +991,7 @@ describe('Router', () => {
       };
     });
 
-    router.useRouter('/test2', subRouter);
+    router.useRouter(subRouter);
 
     const ctx = {
       req: {
@@ -1027,7 +1027,7 @@ describe('Router', () => {
       };
     });
 
-    router.useRouter('/test2', subRouter);
+    router.useRouter(subRouter);
 
     const ctx = {
       req: {
