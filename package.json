@@ -30,7 +30,7 @@
     "dev": "export NODE_ENV=development && nodemon --exec ts-node ./app/index.ts",
     "format": "prettier --write '**/*.{ts,js,json}'",
     "format:check": "prettier --check '**/*.{ts,js,json}'",
-    "generate": "ts-node ./app/lib/generateResource.ts",
+    "generate": "ts-node ./lib/generateResource.ts",
     "lint": "eslint --ext .ts ./app --fix",
     "lint:check": "eslint --ext .ts ./app",
     "start": "export NODE_ENV=production && node ./dist/app/index.js",

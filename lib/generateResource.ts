@@ -18,7 +18,7 @@ rl.question('What is the name of the resource? ', (resourceName) => {
     : `${singular}s`;
 
   // create the directory for the resource in app/routes
-  const resourceDir = Path.join(__dirname, '..', 'routes', resourceName);
+  const resourceDir = Path.join(__dirname, '..', 'app', 'routes', resourceName);
   if (!FS.existsSync(resourceDir)) {
     FS.mkdirSync(resourceDir);
   }
