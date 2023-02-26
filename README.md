@@ -112,9 +112,7 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
   - Parses query strings into an object
 ```typescript
   apiRouter.get('/', (ctx: ICtx) => {
-    ctx.res.status(200).json({
-      message: 'Hello World'
-    });
+    ctx.res.status(200).json(ctx.req.query);
     /**
      * GET /api/test?hello=world
      * returns { "hello": "world" }
