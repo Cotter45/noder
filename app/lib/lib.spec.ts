@@ -306,7 +306,7 @@ describe('Route', () => {
       },
     } as any);
 
-    expect(result).toBeInstanceOf(Error);
+    expect(result.message).toBe('Internal Server Error.');
   });
 
   it('should handle returns with ctx', async () => {
@@ -392,7 +392,7 @@ describe('Router', () => {
     describe('GET', () => {
       it('should be able to add a get route', () => {
         const router = new Router('/');
-        router.get('/', [], () => {
+        router.get('/', () => {
           return 'test';
         });
 
@@ -401,7 +401,7 @@ describe('Router', () => {
 
       it('should be able to add a named get route without /', () => {
         const router = new Router('/');
-        router.get('test', [], () => {
+        router.get('test', () => {
           return 'test';
         });
 
@@ -410,7 +410,7 @@ describe('Router', () => {
 
       it('should be able to add a named get route with /', () => {
         const router = new Router('/');
-        router.get('/test', [], () => {
+        router.get('/test', () => {
           return 'test';
         });
 
@@ -421,7 +421,7 @@ describe('Router', () => {
     describe('POST', () => {
       it('should be able to add a post route', () => {
         const router = new Router('/');
-        router.post('/', [], () => {
+        router.post('/', () => {
           return 'test';
         });
 
@@ -430,7 +430,7 @@ describe('Router', () => {
 
       it('should be able to execute a post route', async () => {
         const router = new Router('/api');
-        router.post('/', [], () => {
+        router.post('/', () => {
           return { test: 'test' };
         });
 
@@ -448,7 +448,7 @@ describe('Router', () => {
 
       it('should be able to execute a post route with params', async () => {
         const router = new Router('/api');
-        router.post('/:test', [], () => {
+        router.post('/:test', () => {
           return { test: 'test' };
         });
 
@@ -467,7 +467,7 @@ describe('Router', () => {
 
       it('should be able to add a named post route without /', () => {
         const router = new Router('/');
-        router.post('test', [], () => {
+        router.post('test', () => {
           return 'test';
         });
 
@@ -476,7 +476,7 @@ describe('Router', () => {
 
       it('should be able to add a named post route with /', () => {
         const router = new Router('/');
-        router.post('/test', [], () => {
+        router.post('/test', () => {
           return 'test';
         });
 
@@ -487,7 +487,7 @@ describe('Router', () => {
     describe('PUT', () => {
       it('should be able to add a put route', () => {
         const router = new Router('/');
-        router.put('/', [], () => {
+        router.put('/', () => {
           return 'test';
         });
 
@@ -496,7 +496,7 @@ describe('Router', () => {
 
       it('should be able to execute a put route', async () => {
         const router = new Router('/api');
-        router.put('/', [], () => {
+        router.put('/', () => {
           return { test: 'test' };
         });
 
@@ -514,7 +514,7 @@ describe('Router', () => {
 
       it('should be able to execute a put route with params', async () => {
         const router = new Router('/api');
-        router.put('/:test', [], () => {
+        router.put('/:test', () => {
           return { test: 'test' };
         });
 
@@ -533,7 +533,7 @@ describe('Router', () => {
 
       it('should be able to add a named put route without /', () => {
         const router = new Router('/');
-        router.put('test', [], () => {
+        router.put('test', () => {
           return 'test';
         });
 
@@ -542,7 +542,7 @@ describe('Router', () => {
 
       it('should be able to add a named put route with /', () => {
         const router = new Router('/');
-        router.put('/test', [], () => {
+        router.put('/test', () => {
           return 'test';
         });
 
@@ -553,7 +553,7 @@ describe('Router', () => {
     describe('PATCH', () => {
       it('should be able to add a patch route', () => {
         const router = new Router('/');
-        router.patch('/', [], () => {
+        router.patch('/', () => {
           return 'test';
         });
 
@@ -562,7 +562,7 @@ describe('Router', () => {
 
       it('should be able to execute a patch route', async () => {
         const router = new Router('/api');
-        router.patch('/', [], () => {
+        router.patch('/', () => {
           return { test: 'test' };
         });
 
@@ -580,7 +580,7 @@ describe('Router', () => {
 
       it('should be able to execute a patch route with params', async () => {
         const router = new Router('/api');
-        router.patch('/:test', [], () => {
+        router.patch('/:test', () => {
           return { test: 'test' };
         });
 
@@ -599,7 +599,7 @@ describe('Router', () => {
 
       it('should be able to add a named patch route without /', () => {
         const router = new Router('/');
-        router.patch('test', [], () => {
+        router.patch('test', () => {
           return 'test';
         });
 
@@ -608,7 +608,7 @@ describe('Router', () => {
 
       it('should be able to add a named patch route with /', () => {
         const router = new Router('/');
-        router.patch('/test', [], () => {
+        router.patch('/test', () => {
           return 'test';
         });
 
@@ -619,7 +619,7 @@ describe('Router', () => {
     describe('DELETE', () => {
       it('should be able to add a delete route', () => {
         const router = new Router('/');
-        router.delete('/', [], () => {
+        router.delete('/', () => {
           return 'test';
         });
 
@@ -628,7 +628,7 @@ describe('Router', () => {
 
       it('should be able to execute a delete route', async () => {
         const router = new Router('/api');
-        router.delete('/', [], () => {
+        router.delete('/', () => {
           return { test: 'test' };
         });
 
@@ -646,7 +646,7 @@ describe('Router', () => {
 
       it('should be able to execute a delete route with params', async () => {
         const router = new Router('/api');
-        router.delete('/:test', [], () => {
+        router.delete('/:test', () => {
           return { test: 'test' };
         });
 
@@ -665,7 +665,7 @@ describe('Router', () => {
 
       it('should be able to add a named delete route without /', () => {
         const router = new Router('/');
-        router.delete('test', [], () => {
+        router.delete('test', () => {
           return 'test';
         });
 
@@ -674,7 +674,7 @@ describe('Router', () => {
 
       it('should be able to add a named delete route with /', () => {
         const router = new Router('/');
-        router.delete('/test', [], () => {
+        router.delete('/test', () => {
           return 'test';
         });
 
@@ -715,7 +715,7 @@ describe('Router', () => {
       router.use(middleFunc);
       expect(router.middleware.length).toBe(1);
 
-      router.get('/test', [], () => {
+      router.get('/test', () => {
         return { test: 'test' };
       });
 
@@ -739,7 +739,7 @@ describe('Router', () => {
       router.use(middleFunc);
       expect(router.middleware.length).toBe(1);
 
-      router.get('/test', [], () => {
+      router.get('/test', () => {
         return 'FAIL';
       });
 
@@ -767,7 +767,7 @@ describe('Router', () => {
       router.use(middleFunc);
       expect(router.middleware.length).toBe(1);
 
-      router.get('/test', [], () => {
+      router.get('/test', () => {
         return 'FAIL';
       });
 
@@ -790,7 +790,7 @@ describe('Router', () => {
   describe('Simple Routers', () => {
     it('should be able to add a router and execute', async () => {
       const router = new Router('/api');
-      router.get('/tests', [], () => {
+      router.get('/tests', () => {
         return { test: 'test' };
       });
 
@@ -806,7 +806,7 @@ describe('Router', () => {
 
   it('should return already sent if response is already sent', async () => {
     const router = new Router('/api');
-    router.get('/tests', [], () => {
+    router.get('/tests', () => {
       return { alreadySent: true };
     });
 
@@ -858,7 +858,7 @@ describe('Router', () => {
   it('a router + route should return data or an error', async () => {
     const router = new Router('/test');
 
-    router.get('/test', [], () => {
+    router.get('/test', () => {
       return {
         message: 'Ok',
         data: 'Test',
@@ -889,7 +889,7 @@ describe('Router', () => {
   it('a router + route should handle trailing slashes', async () => {
     const router = new Router('/test');
 
-    router.get('/test', [], () => {
+    router.get('/test', () => {
       return {
         message: 'Ok',
         data: 'Test',
@@ -949,7 +949,7 @@ describe('Router', () => {
     const router = new Router('/test');
     const id = 10;
 
-    router.get('/:id', [], (ctx: ICtx) => {
+    router.get('/:id', (ctx: ICtx) => {
       return {
         status: 200,
         message: 'Ok',
@@ -983,7 +983,7 @@ describe('Router', () => {
     const subRouter = new Router('/test2');
     const id = 10;
 
-    subRouter.get('/:id', [], (ctx: ICtx) => {
+    subRouter.get('/:id', (ctx: ICtx) => {
       return {
         status: 200,
         message: 'Ok',
@@ -1019,7 +1019,7 @@ describe('Router', () => {
     const subRouter = new Router('/test2');
     const id = 10;
 
-    subRouter.get('/:id/test', [], (ctx: ICtx) => {
+    subRouter.get('/:id/test', (ctx: ICtx) => {
       return {
         status: 200,
         message: 'Ok',

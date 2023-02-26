@@ -1,4 +1,6 @@
 import { ServerError } from './errors';
+import { executeMiddleware } from './executeMiddleware';
+import { executeRoute } from './executeRoute';
 import { Route } from './route';
 
 import type { ICtx, IRequest, IResponse } from './types';
@@ -60,7 +62,29 @@ export class Router {
    * @param callback - The callback function
    * @returns - void
    */
-  get(path: string, middleware: any[], callback: any) {
+  // get(path: string, middleware: any[], callback: any) {
+  //   if (path === '/') {
+  //     this.getRoutes.set(
+  //       this.path,
+  //       new Route(this.path, 'GET', middleware, callback),
+  //     );
+  //     return;
+  //   }
+
+  //   path.includes('/')
+  //     ? this.getRoutes.set(
+  //         this.path + path,
+  //         new Route(this.path + path, 'GET', middleware, callback),
+  //       )
+  //     : this.getRoutes.set(
+  //         this.path + '/' + path,
+  //         new Route(this.path + '/' + path, 'GET', middleware, callback),
+  //       );
+  // }
+  get(path: string, ...args: any) {
+    const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
+    const callback = args.length > 1 ? args[args.length - 1] : args[0];
+
     if (path === '/') {
       this.getRoutes.set(
         this.path,
@@ -87,7 +111,10 @@ export class Router {
    * @param callback - The callback function
    * @returns - void
    */
-  post(path: string, middleware: any[], callback: any) {
+  post(path: string, ...args: any[]) {
+    const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
+    const callback = args.length > 1 ? args[args.length - 1] : args[0];
+
     if (path === '/') {
       this.postRoutes.set(
         this.path,
@@ -114,7 +141,10 @@ export class Router {
    * @param callback - The callback function
    * @returns - void
    */
-  put(path: string, middleware: any[], callback: any) {
+  put(path: string, ...args: any[]) {
+    const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
+    const callback = args.length > 1 ? args[args.length - 1] : args[0];
+
     if (path === '/') {
       this.putRoutes.set(
         this.path,
@@ -141,7 +171,10 @@ export class Router {
    * @param callback - The callback function
    * @returns - void
    */
-  patch(path: string, middleware: any[], callback: any) {
+  patch(path: string, ...args: any[]) {
+    const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
+    const callback = args.length > 1 ? args[args.length - 1] : args[0];
+
     if (path === '/') {
       this.patchRoutes.set(
         this.path,
@@ -168,7 +201,10 @@ export class Router {
    * @param callback - The callback function
    * @returns - void
    */
-  delete(path: string, middleware: any[], callback: any) {
+  delete(path: string, ...args: any[]) {
+    const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
+    const callback = args.length > 1 ? args[args.length - 1] : args[0];
+
     if (path === '/') {
       this.deleteRoutes.set(
         this.path,
@@ -188,42 +224,12 @@ export class Router {
         );
   }
 
-  private async executeMiddleware(
+  private async handleMiddleware(
     middleware: any[],
     req: IRequest,
     res: IResponse,
   ): Promise<any> {
-    if (!middleware.length) return false;
-
-    function* middlewareGenerator(middleware: any[]) {
-      for (const func of middleware) {
-        yield func;
-      }
-    }
-
-    const middlewareIterator = middlewareGenerator(middleware);
-    let result: any;
-
-    const next = async () => {
-      const nextFunc = middlewareIterator.next();
-      if (!nextFunc.value) return false;
-      const response = await nextFunc.value(req, res, next);
-      if (response) result = response;
-      return result;
-    };
-
-    try {
-      const response = await next();
-      if (response) {
-        return response;
-      }
-      return false;
-    } catch (e: any) {
-      return {
-        status: 500,
-        body: 'Internal Server Error',
-      };
-    }
+    return await executeMiddleware(middleware, req, res);
   }
 
   async execute(ctx: ICtx, nestedUrl?: string): Promise<any> {
@@ -238,7 +244,7 @@ export class Router {
     const nestedRouterUrl = '/' + splitUrl[2];
 
     if (!middlewareDone && this.middleware.length) {
-      const middlewareResult = await this.executeMiddleware(
+      const middlewareResult = await this.handleMiddleware(
         this.middleware,
         ctx.req,
         ctx.res,
@@ -270,128 +276,18 @@ export class Router {
         ctx.req.url = ctx.req.url.replace(nestedUrl, '');
       }
 
-      switch (ctx.req.method) {
-        case 'GET':
-          const getRoute = this.getRoutes.get(ctx.req.url);
-          if (getRoute) {
-            result = await getRoute.execute(ctx);
-            break;
-          }
+      const methodMap: { [key: string]: Map<string, Route> } = {
+        GET: this.getRoutes,
+        POST: this.postRoutes,
+        PUT: this.putRoutes,
+        PATCH: this.patchRoutes,
+        DELETE: this.deleteRoutes,
+      };
 
-          for await (const [, route] of this.getRoutes) {
-            if (route.paramIndex) {
-              const routePath = route.path.slice(0, route.paramIndex);
-              const reqPath = ctx.req.url.slice(0, route.paramIndex);
+      const method = methodMap[ctx.req.method];
 
-              if (routePath === reqPath && route.paramName) {
-                ctx.req.params[route.paramName] = ctx.req.url.slice(
-                  route.paramIndex,
-                  ctx.req.url.lastIndexOf('/') > route.paramIndex
-                    ? ctx.req.url.lastIndexOf('/')
-                    : ctx.req.url.length,
-                );
-                result = await route.execute(ctx);
-                break;
-              }
-            }
-          }
-          break;
-        case 'POST':
-          const postRoute = this.postRoutes.get(ctx.req.url);
-          if (postRoute) {
-            result = await postRoute.execute(ctx);
-            break;
-          }
-
-          for await (const [, route] of this.postRoutes) {
-            if (route.paramIndex) {
-              const routePath = route.path.slice(0, route.paramIndex);
-              const reqPath = ctx.req.url.slice(0, route.paramIndex);
-
-              if (routePath === reqPath && route.paramName) {
-                ctx.req.params[route.paramName] = ctx.req.url.slice(
-                  route.paramIndex,
-                  ctx.req.url.lastIndexOf('/') > route.paramIndex
-                    ? ctx.req.url.lastIndexOf('/')
-                    : ctx.req.url.length,
-                );
-                result = await route.execute(ctx);
-              }
-            }
-          }
-          break;
-        case 'PUT':
-          const putRoute = this.putRoutes.get(ctx.req.url);
-          if (putRoute) {
-            result = await putRoute.execute(ctx);
-            break;
-          }
-
-          for await (const [, route] of this.putRoutes) {
-            if (route.paramIndex) {
-              const routePath = route.path.slice(0, route.paramIndex);
-              const reqPath = ctx.req.url.slice(0, route.paramIndex);
-
-              if (routePath === reqPath && route.paramName) {
-                ctx.req.params[route.paramName] = ctx.req.url.slice(
-                  route.paramIndex,
-                  ctx.req.url.lastIndexOf('/') > route.paramIndex
-                    ? ctx.req.url.lastIndexOf('/')
-                    : ctx.req.url.length,
-                );
-                result = await route.execute(ctx);
-              }
-            }
-          }
-          break;
-        case 'PATCH':
-          const patchRoute = this.patchRoutes.get(ctx.req.url);
-          if (patchRoute) {
-            result = await patchRoute.execute(ctx);
-            break;
-          }
-
-          for await (const [, route] of this.patchRoutes) {
-            if (route.paramIndex) {
-              const routePath = route.path.slice(0, route.paramIndex);
-              const reqPath = ctx.req.url.slice(0, route.paramIndex);
-
-              if (routePath === reqPath && route.paramName) {
-                ctx.req.params[route.paramName] = ctx.req.url.slice(
-                  route.paramIndex,
-                  ctx.req.url.lastIndexOf('/') > route.paramIndex
-                    ? ctx.req.url.lastIndexOf('/')
-                    : ctx.req.url.length,
-                );
-                result = await route.execute(ctx);
-              }
-            }
-          }
-          break;
-        case 'DELETE':
-          const deleteRoute = this.deleteRoutes.get(ctx.req.url);
-          if (deleteRoute) {
-            result = await deleteRoute.execute(ctx);
-            break;
-          }
-
-          for await (const [, route] of this.deleteRoutes) {
-            if (route.paramIndex) {
-              const routePath = route.path.slice(0, route.paramIndex);
-              const reqPath = ctx.req.url.slice(0, route.paramIndex);
-
-              if (routePath === reqPath && route.paramName) {
-                ctx.req.params[route.paramName] = ctx.req.url.slice(
-                  route.paramIndex,
-                  ctx.req.url.lastIndexOf('/') > route.paramIndex
-                    ? ctx.req.url.lastIndexOf('/')
-                    : ctx.req.url.length,
-                );
-                result = await route.execute(ctx);
-              }
-            }
-          }
-          break;
+      if (method) {
+        result = await executeRoute(ctx, method);
       }
 
       if (result) {
