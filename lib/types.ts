@@ -5,17 +5,33 @@ export interface IRequest extends http.IncomingMessage {
   url: string;
   headers: NodeJS.Dict<string | string[]>;
   params: { [key: string]: string };
-  query: any;
-  body: any;
+  query: { [key: string]: string };
+  body: { [key: string]: string };
   requestId: string;
   cookies?: { [key: string]: string };
 }
 
+export interface ISetCookie {
+  name: string;
+  value: string;
+  options: {
+    Path?: string;
+    HttpOnly?: boolean;
+    Secure?: boolean;
+    'Max-Age'?: number;
+    SameSite?: 'strict' | 'lax' | 'none';
+    SameParty?: boolean;
+    Priority?: 'low' | 'medium' | 'high';
+  };
+}
+
 export interface IResponse extends http.ServerResponse {
-  header: any;
-  status: any;
-  send: any;
-  json: any;
+  header: (key: string, value: string) => IResponse;
+  cookie: (cookie: ISetCookie) => IResponse;
+  clearCookie: (key: string) => IResponse;
+  status: (code: number) => IResponse;
+  send: (data: any) => IResponse;
+  json: (data: any) => IResponse;
   res: http.ServerResponse;
 }
 

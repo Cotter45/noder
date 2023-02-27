@@ -126,6 +126,36 @@ describe('Request', () => {
     });
     expect(req.requestId).toBeDefined();
   });
+
+  it('should parse cookies', () => {
+    const req = Request(
+      {
+        method: 'GET',
+        url: '/test',
+        headers: {
+          cookie: 'test=1;test2=2',
+        },
+      } as any,
+      {
+        test: 1,
+        test2: 2,
+      },
+    );
+
+    expect(req).toBeDefined();
+    expect(req.method).toBe('GET');
+    expect(req.url).toBe('/test');
+    expect(req.query).toEqual({});
+    expect(req.body).toStrictEqual({
+      test: 1,
+      test2: 2,
+    });
+    expect(req.requestId).toBeDefined();
+    expect(req.cookies).toEqual({
+      test: '1',
+      test2: '2',
+    });
+  });
 });
 
 describe('Response', () => {
@@ -150,6 +180,71 @@ describe('Response', () => {
     res.header('test', 'test');
 
     expect(res.header('test', 'test')).toBe(res);
+  });
+
+  it('should set a cookie', () => {
+    const headers: any[] = [];
+
+    const res = new Response(
+      {} as any,
+      {
+        setHeader: jest.fn().mockImplementation((key, value) => {
+          headers.push({ key, value });
+        }),
+      } as any,
+    );
+
+    res.cookie({
+      name: 'test',
+      value: 'test',
+      options: {
+        Path: '/',
+        HttpOnly: true,
+        Secure: true,
+        'Max-Age': 1000,
+        SameSite: 'lax',
+        SameParty: true,
+      },
+    });
+
+    expect(headers).toEqual([
+      {
+        key: 'Set-Cookie',
+        value:
+          'test=test; Path=%2F; HttpOnly=true; Secure=true; Max-Age=1000; SameSite=lax; SameParty=true',
+      },
+    ]);
+
+    res.cookie({
+      name: 'test2',
+      value: 'test2',
+      options: {},
+    });
+
+    expect(headers).toEqual([
+      {
+        key: 'Set-Cookie',
+        value:
+          'test=test; Path=%2F; HttpOnly=true; Secure=true; Max-Age=1000; SameSite=lax; SameParty=true',
+      },
+      {
+        key: 'Set-Cookie',
+        value: 'test2=test2; Path=%2F',
+      },
+    ]);
+  });
+
+  it('should clear a cookie', () => {
+    const res = new Response(
+      {} as any,
+      {
+        setHeader: jest.fn(),
+      } as any,
+    );
+
+    res.clearCookie('test');
+
+    expect(res.clearCookie).toBeDefined();
   });
 
   it('should set a status', () => {

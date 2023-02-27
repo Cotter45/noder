@@ -1,8 +1,8 @@
-import { IncomingMessage, ServerResponse } from 'http';
+import { ServerResponse } from 'http';
 
-import type { IRequest } from './types';
+import type { IRequest, ISetCookie } from './types';
 
-export class Response extends ServerResponse<IncomingMessage> {
+export class Response extends ServerResponse {
   declare res: ServerResponse;
   declare req: IRequest;
 
@@ -14,6 +14,31 @@ export class Response extends ServerResponse<IncomingMessage> {
 
   header(key: string, value: string) {
     this.res.setHeader(key, value);
+    return this;
+  }
+
+  cookie({ name, value, options }: ISetCookie) {
+    if (!options.Path) {
+      options.Path = '/';
+    }
+
+    const formatObj: { [key: string]: any } = {
+      [name]: value,
+      ...options,
+    };
+
+    const cookieValue = Object.entries(formatObj)
+      .map(([k, v]) => k + '=' + encodeURIComponent(v))
+      .join('; ');
+
+    this.res.setHeader('Set-Cookie', cookieValue);
+    return this;
+  }
+
+  clearCookie(key: string) {
+    this.res.setHeader('Set-Cookie', [
+      `${key}=; Path=/; HttpOnly=false; Secure=false; Max-Age=0; SameSite=false; SameParty=false; Priority=low`,
+    ]);
     return this;
   }
 

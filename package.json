@@ -1,7 +1,7 @@
 {
   "name": "@cotter45/noderjs",
   "author": "Sean Cotter <cotter.github45@gmail.com>",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index",
@@ -14,9 +14,17 @@
   "keywords": [
     "node",
     "typescript",
+    "javascript",
+    "express",
+    "middleware",
+    "server",
+    "template",
     "boilerplate",
     "REST",
-    "API"
+    "API",
+    "api",
+    "rest",
+    "microservice"
   ],
   "files": [
     "dist/**/*"
