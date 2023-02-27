@@ -12,12 +12,11 @@ import { executeMiddleware } from './executeMiddleware';
 import type { ICtx, IRequest, IResponse } from './types';
 
 /**
- * The main server class
+ * The main server class, adding anything to your config.ctx object will also add it to the ctx object for use within middleware and callbacks.
  * @param config - The server configuration object
  * @param config.port - The port you want to use. Default 8000.
  * @param config.host - The host you want to use. Default 0.0.0.0.
- * @param config.db - The database you want to use. No default.
- * @param config.emitter - The event emitter you want to use. No default.
+ * @param config.ctx - The context object to be passed to all routes and middleware.
  */
 export class Server {
   declare routers: Map<string, Router>;
@@ -46,7 +45,7 @@ export class Server {
   }
 
   /**
-   *
+   * Lists this directory as a static folder
    * @param dir The name of the static folder, must be inside the 'app' directory
    */
   staticDir = (dir: string) => {
@@ -150,10 +149,19 @@ export class Server {
     });
   };
 
+  /**
+   * Adds middleware to the server, will run before any routers
+   * @param middleware - The middleware you want to use
+   */
   use(middleware: any) {
     this.middleware.push(middleware);
   }
 
+  /**
+   * Adds a router to the server
+   * @param router - The router you want to use
+   * @returns void
+   */
   useRouter(router: Router) {
     this.routers.set(router.path, router);
   }
@@ -192,98 +200,96 @@ export class Server {
    * @param host - Defaults to 0.0.0.0
    */
   async listen(port?: number, host?: string) {
-    const server = await http.createServer(
-      async (request: any, response: any) => {
-        let middlewareDone = false;
-        let req: IRequest;
-        let res: IResponse;
+    const server = http.createServer(async (request: any, response: any) => {
+      let middlewareDone = false;
+      let req: IRequest;
+      let res: IResponse;
 
-        try {
-          if (request.method === 'OPTIONS') {
-            response.writeHead(204, request.headers);
-            response.end();
-            return;
-          }
-
-          const body = await this.bodyParser(request);
-
-          req = Request(request, body);
-          res = new Response(req, response);
-
-          if (!middlewareDone && this.middleware.length) {
-            const result: any = await this.handleMiddleware(
-              this.middleware,
-              req,
-              res,
-            );
-            if (result) {
-              response.statusCode = result.status || 500;
-              response.end(
-                JSON.stringify({
-                  message: result.message || 'Internal Server Error.',
-                }),
-              );
-              this.logger.info({
-                method: request.method,
-                url: request.url,
-                status: result.status || response.statusCode,
-                error: result.errorMessage,
-              });
-              return;
-            }
-            middlewareDone = true;
-          }
-
-          if (this.static && request.url && !request.url.includes('/api')) {
-            this.serveStatic(request, response);
-            return;
-          }
-
-          const routerPath = req.url.split('/')[1];
-
-          if (this.routers.has('/' + routerPath)) {
-            const ctx: ICtx = {
-              req,
-              res,
-              config: this.config,
-              logger: this.logger,
-              ...this.ctx,
-            };
-
-            const router = this.routers.get('/' + routerPath);
-            if (router) {
-              const result = await router.execute(ctx);
-              if (result) {
-                this.logger.info({
-                  url: req.url,
-                  method: req.method,
-                  status: result.status,
-                  requestId: req.requestId,
-                  message: result.message,
-                  data: result.data,
-                });
-                if (result.alreadySent) return;
-                return ctx.res.status(result.status || 200).json(result);
-              }
-            }
-          }
-
-          new NotFoundError(req, res);
-          this.logger.error({
-            method: req.method,
-            url: req.url,
-            status: 404,
-            requestId: req.requestId,
-            message: 'Not Found',
-          });
+      try {
+        if (request.method === 'OPTIONS') {
+          response.writeHead(204, request.headers);
+          response.end();
           return;
-        } catch (e: any) {
-          response.statusCode = 500;
-          response.end('Internal Server Error');
-          this.logger.error(e);
         }
-      },
-    );
+
+        const body = await this.bodyParser(request);
+
+        req = Request(request, body);
+        res = new Response(req, response);
+
+        if (!middlewareDone && this.middleware.length) {
+          const result: any = await this.handleMiddleware(
+            this.middleware,
+            req,
+            res,
+          );
+          if (result) {
+            response.statusCode = result.status || 500;
+            response.end(
+              JSON.stringify({
+                message: result.message || 'Internal Server Error.',
+              }),
+            );
+            this.logger.info({
+              method: request.method,
+              url: request.url,
+              status: result.status || response.statusCode,
+              error: result.errorMessage,
+            });
+            return;
+          }
+          middlewareDone = true;
+        }
+
+        if (this.static && request.url && !request.url.includes('/api')) {
+          this.serveStatic(request, response);
+          return;
+        }
+
+        const routerPath = req.url.split('/')[1];
+
+        if (this.routers.has('/' + routerPath)) {
+          const ctx: ICtx = {
+            req,
+            res,
+            config: this.config,
+            logger: this.logger,
+            ...this.ctx,
+          };
+
+          const router = this.routers.get('/' + routerPath);
+          if (router) {
+            const result = await router.execute(ctx);
+            if (result) {
+              this.logger.info({
+                url: req.url,
+                method: req.method,
+                status: result.status,
+                requestId: req.requestId,
+                message: result.message,
+                data: result.data,
+              });
+              if (result.alreadySent) return;
+              return ctx.res.status(result.status || 200).json(result);
+            }
+          }
+        }
+
+        new NotFoundError(req, res);
+        this.logger.error({
+          method: req.method,
+          url: req.url,
+          status: 404,
+          requestId: req.requestId,
+          message: 'Not Found',
+        });
+        return;
+      } catch (e: any) {
+        response.statusCode = 500;
+        response.end('Internal Server Error');
+        this.logger.error(e);
+      }
+    });
 
     server.listen(
       port || this.config.port || 8000,

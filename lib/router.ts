@@ -58,8 +58,7 @@ export class Router {
   /**
    * Adds a GET http method route to the router
    * @param path - The path of the route
-   * @param middleware - An array of middleware functions
-   * @param callback - The callback function
+   * @param ...args - Functions to call in order, the last function is the callback
    * @returns - void
    */
   get(path: string, ...args: any) {
@@ -88,8 +87,7 @@ export class Router {
   /**
    * Adds a POST http method route to the router
    * @param path - The path of the route
-   * @param middleware - An array of middleware functions
-   * @param callback - The callback function
+   * @param ...args - Functions to call in order, the last function is the callback
    * @returns - void
    */
   post(path: string, ...args: any[]) {
@@ -118,8 +116,7 @@ export class Router {
   /**
    * Adds a PUT http method route to the router
    * @param path - The path of the route
-   * @param middleware - An array of middleware functions
-   * @param callback - The callback function
+   * @param ...args - Functions to call in order, the last function is the callback
    * @returns - void
    */
   put(path: string, ...args: any[]) {
@@ -148,8 +145,7 @@ export class Router {
   /**
    * Adds a PATCH http method route to the router
    * @param path - The path of the route
-   * @param middleware - An array of middleware functions
-   * @param callback - The callback function
+   * @param ...args - Functions to call in order, the last function is the callback
    * @returns - void
    */
   patch(path: string, ...args: any[]) {
@@ -178,8 +174,7 @@ export class Router {
   /**
    * Adds a DELETE http method route to the router
    * @param path - The path of the route
-   * @param middleware - An array of middleware functions
-   * @param callback - The callback function
+   * @param ...args - Functions to call in order, the last function is the callback
    * @returns - void
    */
   delete(path: string, ...args: any[]) {

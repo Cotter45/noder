@@ -1,6 +1,6 @@
-import { Router } from '@cotter45/noderjs';
+import { Router } from '../../lib/router';
 
-import type { ICtx } from '@cotter45/noderjs';
+import type { ICtx } from '../../lib/types';
 
 const apiRouter = new Router('/api');
 
