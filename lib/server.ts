@@ -202,8 +202,6 @@ export class Server {
   async listen(port?: number, host?: string) {
     const server = http.createServer(async (request: any, response: any) => {
       let middlewareDone = false;
-      let req: IRequest;
-      let res: IResponse;
 
       try {
         if (request.method === 'OPTIONS') {
@@ -213,9 +211,9 @@ export class Server {
         }
 
         const body = await this.bodyParser(request);
-
-        req = Request(request, body);
-        res = new Response(req, response);
+        const req: IRequest = Request(request);
+        req.body = body;
+        const res: IResponse = Response(req, response);
 
         if (!middlewareDone && this.middleware.length) {
           const result: any = await this.handleMiddleware(

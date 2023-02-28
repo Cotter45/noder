@@ -6,7 +6,7 @@ export interface IRequest extends http.IncomingMessage {
   headers: NodeJS.Dict<string | string[]>;
   params: { [key: string]: string };
   query: { [key: string]: string };
-  body: { [key: string]: string };
+  body: any;
   requestId: string;
   cookies?: { [key: string]: string };
 }

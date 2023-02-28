@@ -71,7 +71,7 @@ export class Route {
       }
 
       return {
-        status: ctx.res.res.statusCode,
+        status: ctx.res.statusCode,
         alreadySent: true,
       };
     } catch (e: any) {
