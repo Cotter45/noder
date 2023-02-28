@@ -222,16 +222,13 @@ export class Server {
             res,
           );
           if (result) {
-            response.statusCode = result.status || 500;
-            response.end(
-              JSON.stringify({
-                message: result.message || 'Internal Server Error.',
-              }),
-            );
+            res.status(result.status || 500).json({
+              message: result.message || 'Internal Server Error.',
+            });
             this.logger.info({
               method: request.method,
               url: request.url,
-              status: result.status || response.statusCode,
+              status: result.status || res.statusCode,
               error: result.errorMessage,
             });
             return;
