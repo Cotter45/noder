@@ -218,8 +218,8 @@ export class Server {
         if (!middlewareDone && this.middleware.length) {
           const result: any = await this.handleMiddleware(
             this.middleware,
-            req,
-            res,
+            request,
+            response,
           );
           if (result) {
             res.status(result.status || 500).json({
@@ -236,8 +236,11 @@ export class Server {
           middlewareDone = true;
         }
 
+        req = Request(request, body);
+        res = new Response(req, response);
+
         if (this.static && request.url && !request.url.includes('/api')) {
-          this.serveStatic(request, response);
+          this.serveStatic(req, res);
           return;
         }
 
