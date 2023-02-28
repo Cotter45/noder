@@ -12,6 +12,13 @@ apiRouter.get('/', (ctx: ICtx) => {
   });
 });
 
+apiRouter.post('/', (ctx: ICtx) => {
+  console.log(ctx.req.body);
+  return {
+    message: 'Hello World',
+  };
+});
+
 apiRouter.get('/:hello', (ctx: ICtx) => {
   return {
     message: `Hello ${ctx.req.params.hello}`,

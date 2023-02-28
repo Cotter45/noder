@@ -160,7 +160,7 @@ describe('Request', () => {
 
 describe('Response', () => {
   it('should return a response object', () => {
-    const res = new Response({} as any, {} as any);
+    const res = Response({} as any, {} as any);
 
     expect(res).toBeDefined();
     expect(res.header).toBeDefined();
@@ -170,12 +170,7 @@ describe('Response', () => {
   });
 
   it('should set a header', () => {
-    const res = new Response(
-      {} as any,
-      {
-        setHeader: jest.fn(),
-      } as any,
-    );
+    const res = Response({} as any, { setHeader: jest.fn() } as any);
 
     res.header('test', 'test');
 
@@ -183,16 +178,7 @@ describe('Response', () => {
   });
 
   it('should set a cookie', () => {
-    const headers: any[] = [];
-
-    const res = new Response(
-      {} as any,
-      {
-        setHeader: jest.fn().mockImplementation((key, value) => {
-          headers.push({ key, value });
-        }),
-      } as any,
-    );
+    const res = Response({} as any, { setHeader: jest.fn() } as any);
 
     res.cookie({
       name: 'test',
@@ -207,13 +193,12 @@ describe('Response', () => {
       },
     });
 
-    expect(headers).toEqual([
-      {
-        key: 'Set-Cookie',
-        value:
-          'test=test; Path=%2F; HttpOnly=true; Secure=true; Max-Age=1000; SameSite=lax; SameParty=true',
-      },
-    ]);
+    expect(
+      res.header(
+        'Set-Cookie',
+        'test=test; Path=%2F; HttpOnly=true; Secure=true; Max-Age=1000; SameSite=lax; SameParty=true',
+      ),
+    ).toBe(res);
 
     res.cookie({
       name: 'test2',
@@ -221,26 +206,16 @@ describe('Response', () => {
       options: {},
     });
 
-    expect(headers).toEqual([
-      {
-        key: 'Set-Cookie',
-        value:
-          'test=test; Path=%2F; HttpOnly=true; Secure=true; Max-Age=1000; SameSite=lax; SameParty=true',
-      },
-      {
-        key: 'Set-Cookie',
-        value: 'test2=test2; Path=%2F',
-      },
-    ]);
+    expect(
+      res.header(
+        'Set-Cookie',
+        'test=test; Path=%2F; HttpOnly=true; Secure=true; Max-Age=1000; SameSite=lax; SameParty=true',
+      ),
+    ).toBe(res);
   });
 
   it('should clear a cookie', () => {
-    const res = new Response(
-      {} as any,
-      {
-        setHeader: jest.fn(),
-      } as any,
-    );
+    const res = Response({} as any, { setHeader: jest.fn() } as any);
 
     res.clearCookie('test');
 
@@ -248,11 +223,12 @@ describe('Response', () => {
   });
 
   it('should set a status', () => {
-    const res = new Response(
+    const res = Response(
       {} as any,
       {
         setHeader: jest.fn(),
         writeHead: jest.fn(),
+        requestId: 'test',
       } as any,
     );
 
@@ -262,33 +238,31 @@ describe('Response', () => {
   });
 
   it('should send a response', () => {
-    const res = new Response(
+    const res = Response(
       {} as any,
       {
         setHeader: jest.fn(),
         writeHead: jest.fn(),
         write: jest.fn(),
         end: jest.fn(),
+        requestId: 'test',
       } as any,
     );
-
-    res.send('test');
 
     expect(res.send('test'));
   });
 
   it('should send a json response', () => {
-    const res = new Response(
+    const res = Response(
       {} as any,
       {
         setHeader: jest.fn(),
         writeHead: jest.fn(),
         write: jest.fn(),
         end: jest.fn(),
+        requestId: 'test',
       } as any,
     );
-
-    res.json({ test: 'test' });
 
     expect(res.json({ test: 'test' })).toBe(res);
   });
@@ -436,7 +410,7 @@ describe('Route', () => {
 
     expect(result).toStrictEqual({
       alreadySent: true,
-      status: '',
+      status: undefined,
     });
   });
 

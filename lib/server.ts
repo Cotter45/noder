@@ -202,8 +202,6 @@ export class Server {
   async listen(port?: number, host?: string) {
     const server = http.createServer(async (request: any, response: any) => {
       let middlewareDone = false;
-      let req: IRequest;
-      let res: IResponse;
 
       try {
         if (request.method === 'OPTIONS') {
@@ -213,33 +211,30 @@ export class Server {
         }
 
         const body = await this.bodyParser(request);
+        const req: IRequest = Request(request);
+        req.body = body;
+        const res: IResponse = Response(req, response);
 
         if (!middlewareDone && this.middleware.length) {
           const result: any = await this.handleMiddleware(
             this.middleware,
-            request,
-            response,
+            req,
+            res,
           );
           if (result) {
-            response.statusCode = result.status || 500;
-            response.end(
-              JSON.stringify({
-                message: result.message || 'Internal Server Error.',
-              }),
-            );
+            res.status(result.status || 500).json({
+              message: result.message || 'Internal Server Error.',
+            });
             this.logger.info({
               method: request.method,
               url: request.url,
-              status: result.status || response.statusCode,
+              status: result.status || res.statusCode,
               error: result.errorMessage,
             });
             return;
           }
           middlewareDone = true;
         }
-
-        req = Request(request, body);
-        res = new Response(req, response);
 
         if (this.static && request.url && !request.url.includes('/api')) {
           this.serveStatic(req, res);

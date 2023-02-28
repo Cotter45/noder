@@ -32,17 +32,43 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
   - It will then create all folders and files for basic CRUD inside the routes dir
   - It will NOT automagically add this new router / resource to the main router
 - FAST 
-  - wrk -t4 -c300 -d30s http://localhost:8000/api
+  - Using wrk for testing
 ```typescript
-    Running 30s test @ http://localhost:8000/api
-    4 threads and 300 connections
-    Thread Stats   Avg      Stdev     Max   +/- Stdev
-      Latency    14.89ms    7.95ms  92.20ms   87.61%
-      Req/Sec     5.27k     1.58k    8.89k    61.42%
-    630321 requests in 30.05s, 150.28MB read
-    Socket errors: connect 0, read 296, write 0, timeout 0
-    Requests/sec:  20973.21
-    Transfer/sec:      5.00MB
+wrk -t4 -c300 -d30s http://localhost:8000/api
+  Running 30s test @ http://localhost:8000/api
+  4 threads and 300 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    14.89ms    7.95ms  92.20ms   87.61%
+    Req/Sec     5.27k     1.58k    8.89k    61.42%
+  630321 requests in 30.05s, 150.28MB read
+  Socket errors: connect 0, read 296, write 0, timeout 0
+  Requests/sec:  20973.21
+  Transfer/sec:      5.00MB
+```
+  - using autocannon with fastify's benchmark settings
+```typescript
+autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
+  Running 40s test @ http://127.0.0.1:8000/api
+  100 connections with 10 pipelining factor
+
+
+  ┌─────────┬───────┬───────┬────────┬────────┬──────────┬──────────┬────────┐
+  │ Stat    │ 2.5%  │ 50%   │ 97.5%  │ 99%    │ Avg      │ Stdev    │ Max    │
+  ├─────────┼───────┼───────┼────────┼────────┼──────────┼──────────┼────────┤
+  │ Latency │ 16 ms │ 35 ms │ 114 ms │ 164 ms │ 42.41 ms │ 49.48 ms │ 809 ms │
+  └─────────┴───────┴───────┴────────┴────────┴──────────┴──────────┴────────┘
+  ┌───────────┬─────────┬─────────┬─────────┬─────────┬──────────┬─────────┬─────────┐
+  │ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg      │ Stdev   │ Min     │
+  ├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┼─────────┤
+  │ Req/Sec   │ 5931    │ 5931    │ 23647   │ 29407   │ 23301.55 │ 4703.68 │ 5929    │
+  ├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┼─────────┤
+  │ Bytes/Sec │ 1.48 MB │ 1.48 MB │ 5.91 MB │ 7.35 MB │ 5.83 MB  │ 1.18 MB │ 1.48 MB │
+  └───────────┴─────────┴─────────┴─────────┴─────────┴──────────┴─────────┴─────────┘
+
+  Req/Bytes counts sampled once per second.
+  # of samples: 40
+
+  933k requests in 40.05s, 233 MB read
 ```
 
 ## Features
