@@ -16,7 +16,7 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
   - Some notable differences
     - routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers.
     - Routes can only have one param
-    - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, logger, config and whatever else you want to add to it through the initConfig() function.
+    - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, logger, config and whatever else you want to add to it through config.ctx when config object is passed to the server constructor.
 - Lightweight
   - Only 2 dependencies
     - pino for logging
@@ -52,23 +52,23 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
   100 connections with 10 pipelining factor
 
 
-  ┌─────────┬───────┬───────┬────────┬────────┬──────────┬──────────┬────────┐
-  │ Stat    │ 2.5%  │ 50%   │ 97.5%  │ 99%    │ Avg      │ Stdev    │ Max    │
-  ├─────────┼───────┼───────┼────────┼────────┼──────────┼──────────┼────────┤
-  │ Latency │ 16 ms │ 35 ms │ 114 ms │ 164 ms │ 42.41 ms │ 49.48 ms │ 809 ms │
-  └─────────┴───────┴───────┴────────┴────────┴──────────┴──────────┴────────┘
+  ┌─────────┬───────┬───────┬───────┬────────┬──────────┬──────────┬────────┐
+  │ Stat    │ 2.5%  │ 50%   │ 97.5% │ 99%    │ Avg      │ Stdev    │ Max    │
+  ├─────────┼───────┼───────┼───────┼────────┼──────────┼──────────┼────────┤
+  │ Latency │ 14 ms │ 32 ms │ 95 ms │ 186 ms │ 38.09 ms │ 55.13 ms │ 996 ms │
+  └─────────┴───────┴───────┴───────┴────────┴──────────┴──────────┴────────┘
   ┌───────────┬─────────┬─────────┬─────────┬─────────┬──────────┬─────────┬─────────┐
   │ Stat      │ 1%      │ 2.5%    │ 50%     │ 97.5%   │ Avg      │ Stdev   │ Min     │
   ├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┼─────────┤
-  │ Req/Sec   │ 5931    │ 5931    │ 23647   │ 29407   │ 23301.55 │ 4703.68 │ 5929    │
+  │ Req/Sec   │ 4851    │ 4851    │ 26719   │ 36703   │ 25956.35 │ 7281.25 │ 4849    │
   ├───────────┼─────────┼─────────┼─────────┼─────────┼──────────┼─────────┼─────────┤
-  │ Bytes/Sec │ 1.48 MB │ 1.48 MB │ 5.91 MB │ 7.35 MB │ 5.83 MB  │ 1.18 MB │ 1.48 MB │
+  │ Bytes/Sec │ 1.21 MB │ 1.21 MB │ 6.68 MB │ 9.18 MB │ 6.49 MB  │ 1.82 MB │ 1.21 MB │
   └───────────┴─────────┴─────────┴─────────┴─────────┴──────────┴─────────┴─────────┘
 
   Req/Bytes counts sampled once per second.
   # of samples: 40
 
-  933k requests in 40.05s, 233 MB read
+  1039k requests in 40.13s, 260 MB read
 ```
 
 ## Features
