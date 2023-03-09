@@ -362,7 +362,6 @@ export class Server {
           return;
         }
 
-        console.log(request.url);
         if (
           this.fileServer &&
           (request.url === '/' || request.url.includes('.'))

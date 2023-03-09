@@ -10,7 +10,7 @@ export const Request = (req: IncomingMessage, body?: any) => {
 
   if (req.url && req.url.includes('?')) {
     const parsedUrl = url.parse(req.url || '', true) || '';
-    pathname = parsedUrl.pathname || '/';
+    pathname = parsedUrl.pathname ? parsedUrl.pathname.split('?')[0] : '/';
     query = parsedUrl.query || {};
   } else {
     pathname = req.url || '/';
