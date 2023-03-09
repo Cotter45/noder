@@ -117,7 +117,8 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
     };
   });
 ```
-- Logging - Default off, turn it on with - ```new Server({ logger: true })```
+- Logging 
+  - This is OFF by default, turn it on with - ```new Server({ logger: true })```
   - Uses pino for logging
 ```typescript
   apiRouter.get('/', (ctx: ICtx) => {
@@ -148,7 +149,8 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
   });
 ```
 - Static file serving
-  - Uses 'public' dir by default but can be set to any dir inside the 'app' dir. The file names are traversed at run time and added to a Map for quick lookup and security.
+  - This is OFF by default, turn it on with - ```new Server({ fileServer: true })```
+  - Uses 'public' dir by default but can be set to any dir inside the 'app' dir in dev, if you're using typescript or docker you will have to ensure it transfers to the correct 'dist' or 'app' dir. The file names are traversed at run time and added to a Map for quick lookup and security, so updates to the files will be reflected in the server upon a restart.
 ```typescript
   server.staticDir('build'); // folder inside app dir
 ```
