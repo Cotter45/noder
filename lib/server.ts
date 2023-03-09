@@ -391,35 +391,24 @@ export class Server {
         if (result) {
           if (this.logger) {
             this.logger.info({
-              url: req.url,
+              path: req.url,
               method: req.method,
-              status: result.status,
+              status: res.statusCode,
               requestId: req.requestId,
-              message: result.message,
-              data: result.data,
             });
           }
 
-          if (result.alreadySent) return;
+          if (ctx.res.headersSent) {
+            return;
+          }
+
           return ctx.res.status(result.status || 200).json(result);
         }
-
-        new NotFoundError(req, res);
-
-        if (this.logger) {
-          this.logger.error({
-            method: req.method,
-            url: req.url,
-            status: 404,
-            requestId: req.requestId,
-            message: 'Not Found',
-          });
-        }
-
-        return;
       } catch (e: any) {
-        response.statusCode = 500;
-        response.end('Internal Server Error');
+        if (!response.headersSent) {
+          response.statusCode = 500;
+          response.end('Internal Server Error');
+        }
 
         if (this.logger) {
           this.logger.error(e);

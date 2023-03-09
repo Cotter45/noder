@@ -16,6 +16,10 @@ apiRouter.post('/', (ctx: ICtx) => {
   return ctx.req.body;
 });
 
+apiRouter.get('/error', () => {
+  throw new Error('Error');
+});
+
 apiRouter.get('/:hello', (ctx: ICtx) => {
   return {
     message: `Hello ${ctx.req.params.hello}`,

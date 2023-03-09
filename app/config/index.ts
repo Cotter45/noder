@@ -11,8 +11,8 @@ export const initConfig = () => {
       db,
     },
     // add any env vars or config here
-    // logger: true,
-    // fileServer: true,
+    logger: true,
+    fileServer: true,
     keepAliveTimeout: 60000,
     headersTimeout: 60000,
   };

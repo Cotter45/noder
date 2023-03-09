@@ -242,14 +242,6 @@ export class Router {
       }
 
       if (result) {
-        if (result.length) result = result[0];
-        if (result.alreadySent) {
-          return {
-            status: result.status || 200,
-            requestId: ctx.req.requestId,
-            alreadySent: result.alreadySent,
-          };
-        }
         return result;
       }
     } catch (e: any) {
@@ -257,7 +249,9 @@ export class Router {
         ctx.logger.error(e);
       }
 
-      return new ServerError(ctx.req, ctx.res, e.message);
+      if (!ctx.res.headersSent) {
+        return new ServerError(ctx.req, ctx.res, e.message);
+      }
     }
   }
 }
