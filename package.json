@@ -1,7 +1,7 @@
 {
   "name": "@cotter45/noderjs",
   "author": "Sean Cotter <cotter.github45@gmail.com>",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index",

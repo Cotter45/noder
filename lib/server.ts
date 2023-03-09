@@ -38,13 +38,14 @@ export class Server {
       delete config.ctx;
     }
     this.config = config;
-    this.static = 'public';
     if (config.logger) {
       this.logger = logger();
     }
     this.keepAliveTimeout = config.keepAliveTimeout;
     this.headersTimeout = config.headersTimeout;
     if (config.fileServer) {
+      this.fileServer = true;
+      this.static = 'public';
       this.setUpStaticFileMap();
     }
   }
@@ -361,7 +362,11 @@ export class Server {
           return;
         }
 
-        if (this.fileServer && request.url && request.url.includes('.')) {
+        console.log(request.url);
+        if (
+          this.fileServer &&
+          (request.url === '/' || request.url.includes('.'))
+        ) {
           this.serveStatic(req, res);
           return;
         }
