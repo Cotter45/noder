@@ -294,7 +294,11 @@ describe('Route', () => {
     expect(route.middleware.length).toBe(1);
     expect(route.callback).toBeDefined();
 
-    const result = await route.execute({} as any);
+    const result = await route.execute({
+      res: {
+        headerSent: false,
+      },
+    } as any);
 
     expect(result).toBe('test');
   });
@@ -387,14 +391,12 @@ describe('Route', () => {
         res: {
           statusCode: '',
         },
+        headerSent: false,
         json: jest.fn((data: any) => JSON.stringify(data)),
       },
     } as any);
 
-    expect(result).toStrictEqual({
-      alreadySent: true,
-      status: undefined,
-    });
+    expect(result).toBeUndefined();
   });
 
   it('should handle errors in route', async () => {
@@ -418,6 +420,7 @@ describe('Route', () => {
             json: jest.fn(),
           };
         },
+        headerSent: false,
         json: jest.fn(),
       },
       logger: {
@@ -425,7 +428,7 @@ describe('Route', () => {
       },
     } as any);
 
-    expect(result).toBeInstanceOf(Error);
+    expect(result).toBeUndefined();
   });
 });
 
@@ -866,14 +869,12 @@ describe('Router', () => {
 
     const req = { url: '/tests', method: 'GET' } as any;
     const res = {
-      alreadySent: true,
+      headersSent: true,
     } as any;
 
     const result = await router.execute({ req, res } as any);
     expect(result).toEqual({
       alreadySent: true,
-      requestId: undefined,
-      status: 200,
     });
   });
 
@@ -924,6 +925,9 @@ describe('Router', () => {
         url: '/test',
         requestId: 'Test',
       },
+      res: {
+        headerSent: false,
+      },
     };
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -954,6 +958,9 @@ describe('Router', () => {
         method: 'GET',
         url: '/test/',
         requestId: 'Test',
+      },
+      res: {
+        headerSent: false,
       },
     };
 
@@ -1016,6 +1023,9 @@ describe('Router', () => {
         params: {},
         requestId: 'Test',
       },
+      res: {
+        headerSent: false,
+      },
     };
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1048,6 +1058,9 @@ describe('Router', () => {
         url: `/${id}/test`,
         params: {},
         requestId: 'Test',
+      },
+      res: {
+        headerSent: false,
       },
     };
 
