@@ -5,7 +5,17 @@ import type { IRequest } from './types';
 import type { IncomingMessage } from 'http';
 
 export const Request = (req: IncomingMessage, body?: any) => {
-  const parsedUrl = url.parse(req.url || '', true) || '';
+  let pathname: string;
+  let query: any;
+
+  if (req.url && req.url.includes('?')) {
+    const parsedUrl = url.parse(req.url || '', true) || '';
+    pathname = parsedUrl.pathname || '/';
+    query = parsedUrl.query || {};
+  } else {
+    pathname = req.url || '/';
+    query = {};
+  }
 
   function parseCookies(str: string) {
     const rx = /([^;=\s]*)=([^;]*)/g;
@@ -16,10 +26,10 @@ export const Request = (req: IncomingMessage, body?: any) => {
 
   return {
     ...req,
-    method: req.method || 'GET',
-    url: req.url ? parsedUrl.pathname || '/' : '/',
+    method: req.method,
+    url: pathname,
     headers: req.headers || {},
-    query: parsedUrl.query ? { ...parsedUrl.query } : {},
+    query: query,
     body: body || {},
     requestId: uuidv4(),
     params: {},

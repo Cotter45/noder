@@ -22,6 +22,12 @@ apiRouter.get('/:hello', (ctx: ICtx) => {
   };
 });
 
+apiRouter.get('/nested/:params/:again/test', (ctx: ICtx) => {
+  return {
+    message: `Hello ${ctx.req.params.params} ${ctx.req.params.again}`,
+  };
+});
+
 apiRouter.get(
   '/middleware',
   async () => {
