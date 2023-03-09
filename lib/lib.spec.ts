@@ -943,7 +943,7 @@ describe('Router', () => {
   });
 
   it('a router + route should handle trailing slashes', async () => {
-    const router = new Router('/');
+    const router = new Router('/api');
 
     router.get('/test', () => {
       return {
@@ -956,7 +956,7 @@ describe('Router', () => {
     const ctx = {
       req: {
         method: 'GET',
-        url: '/test/',
+        url: '/test',
         requestId: 'Test',
       },
       res: {

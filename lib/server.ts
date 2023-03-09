@@ -273,38 +273,33 @@ export class Server {
   }
 
   private matchRouters(ctx: ICtx): Router | undefined {
+    if (ctx.req.url.length > 1 && ctx.req.url.endsWith('/')) {
+      ctx.req.url = ctx.req.url.slice(0, -1);
+    }
+
     const segments = ctx.req.url.split('/').filter(Boolean);
-    let currentRouter = this.routers.get(`/${segments[0]}`);
+    let currentRouter: Router | undefined = undefined;
 
-    if (!currentRouter) {
-      return undefined;
-    }
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
 
-    if (currentRouter.routers.size === 0) {
-      ctx.req.url =
-        segments.length > 1 ? ctx.req.url.replace(`/${segments[0]}`, '') : '/';
-      return currentRouter;
-    }
-
-    for (const segment of segments) {
-      const childRouter: Router | undefined = currentRouter.routers.get(
-        `/${segment}`,
-      );
+      const childRouter: Router | undefined = currentRouter
+        ? currentRouter.routers.get(`/${segment}`)
+        : this.routers.get(`/${segment}`);
 
       if (!childRouter) {
-        ctx.req.url =
-          segments.length > 1
-            ? ctx.req.url.replace(`/${segments[0]}`, '')
-            : '/';
         return currentRouter;
       }
 
-      ctx.req.url =
-        segments.length > 1 ? ctx.req.url.replace(`/${segments[0]}`, '') : '/';
+      ctx.req.url = ctx.req.url.replace(`/${segments[i]}`, '');
       currentRouter = childRouter;
+
+      if (currentRouter && currentRouter.routers.size === 0) {
+        return currentRouter;
+      }
     }
 
-    return undefined;
+    return currentRouter;
   }
 
   /**
@@ -380,7 +375,6 @@ export class Server {
         this.logger ? (ctx.logger = this.logger) : null;
 
         const router = this.matchRouters(ctx);
-
         if (!router) {
           new NotFoundError(req, res);
           return;

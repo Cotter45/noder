@@ -3,6 +3,7 @@ import { Router } from '../../lib/router';
 import type { ICtx } from '../../lib/types';
 
 const apiRouter = new Router('/api');
+const subRouter = new Router('/sub');
 
 // Add routes or nested routers here
 
@@ -46,5 +47,13 @@ apiRouter.get(
     });
   },
 );
+
+subRouter.get('/', (ctx: ICtx) => {
+  ctx.res.status(200).json({
+    message: 'Hello Sub Router',
+  });
+});
+
+apiRouter.useRouter(subRouter);
 
 export default apiRouter;

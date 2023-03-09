@@ -149,17 +149,17 @@ export class Router {
   ): Promise<any> {
     return await executeMiddleware(middleware, req, res);
   }
-
   private matchRoute(
     ctx: ICtx,
     methodRouter: Map<string, Route>,
   ): Route | undefined {
-    if (ctx.req.url.endsWith('/')) {
-      ctx.req.url = ctx.req.url.slice(0, ctx.req.url.length - 1);
+    const url = ctx.req.url;
+
+    if (!url || url === '/') {
+      return methodRouter.get('/');
     }
 
-    const url = ctx.req.url;
-    const segments = url.split('/').filter((segment) => segment !== '');
+    const segments = url.split('/').filter(Boolean);
 
     if (segments.length === 0) {
       return methodRouter.get('/');
@@ -167,9 +167,7 @@ export class Router {
 
     for (const [path, route] of methodRouter) {
       if (route.params) {
-        const routeSegments = path
-          .split('/')
-          .filter((segment) => segment !== '');
+        const routeSegments = path.split('/').filter(Boolean);
 
         if (routeSegments.length !== segments.length) {
           continue;
@@ -177,6 +175,7 @@ export class Router {
 
         const params: { [key: string]: string } = {};
 
+        let match = true;
         for (let i = 0; i < routeSegments.length; i++) {
           const routeSegment = routeSegments[i];
           const segment = segments[i];
@@ -184,13 +183,14 @@ export class Router {
           if (routeSegment.startsWith(':')) {
             params[routeSegment.slice(1)] = segment;
           } else if (routeSegment !== segment) {
+            match = false;
             break;
           }
+        }
 
-          if (i === routeSegments.length - 1) {
-            ctx.req.params = params;
-            return route;
-          }
+        if (match) {
+          ctx.req.params = params;
+          return route;
         }
       } else if (path === url) {
         return route;
