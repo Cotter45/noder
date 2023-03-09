@@ -1,6 +1,5 @@
-import { ServerError } from './errors';
+import { NotFoundError, ServerError } from './errors';
 import { executeMiddleware } from './executeMiddleware';
-import { executeRoute } from './executeRoute';
 import { Route } from './route';
 
 import type { ICtx, IRequest, IResponse } from './types';
@@ -20,7 +19,7 @@ export class Router {
   deleteRoutes: Map<string, Route>;
 
   constructor(path: string) {
-    this.path = path;
+    this.path = path.startsWith('/') ? path : `/${path}`;
     this.middleware = [];
     this.routers = new Map();
     this.getRoutes = new Map();
@@ -44,15 +43,7 @@ export class Router {
    * @param router - The nested router to use
    */
   useRouter(router: Router) {
-    router.path.includes('/')
-      ? this.routers.set(this.path + router.path, router)
-      : this.routers.set(this.path + '/' + router.path, router);
-
-    router.updatePath(this.path + router.path);
-  }
-
-  private updatePath(path: string) {
-    this.path = path;
+    this.routers.set(router.path, router);
   }
 
   /**
@@ -65,22 +56,11 @@ export class Router {
     const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
     const callback = args.length > 1 ? args[args.length - 1] : args[0];
 
-    if (path === '/') {
-      this.getRoutes.set(
-        this.path,
-        new Route(this.path, 'GET', middleware, callback),
-      );
-      return;
-    }
-
     path.includes('/')
-      ? this.getRoutes.set(
-          this.path + path,
-          new Route(this.path + path, 'GET', middleware, callback),
-        )
+      ? this.getRoutes.set(path, new Route(path, 'GET', middleware, callback))
       : this.getRoutes.set(
-          this.path + '/' + path,
-          new Route(this.path + '/' + path, 'GET', middleware, callback),
+          '/' + path,
+          new Route('/' + path, 'GET', middleware, callback),
         );
   }
 
@@ -94,22 +74,11 @@ export class Router {
     const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
     const callback = args.length > 1 ? args[args.length - 1] : args[0];
 
-    if (path === '/') {
-      this.postRoutes.set(
-        this.path,
-        new Route(this.path, 'POST', middleware, callback),
-      );
-      return;
-    }
-
     path.includes('/')
-      ? this.postRoutes.set(
-          this.path + path,
-          new Route(this.path + path, 'POST', middleware, callback),
-        )
+      ? this.postRoutes.set(path, new Route(path, 'POST', middleware, callback))
       : this.postRoutes.set(
-          this.path + '/' + path,
-          new Route(this.path + '/' + path, 'POST', middleware, callback),
+          '/' + path,
+          new Route('/' + path, 'POST', middleware, callback),
         );
   }
 
@@ -123,22 +92,11 @@ export class Router {
     const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
     const callback = args.length > 1 ? args[args.length - 1] : args[0];
 
-    if (path === '/') {
-      this.putRoutes.set(
-        this.path,
-        new Route(this.path, 'PUT', middleware, callback),
-      );
-      return;
-    }
-
     path.includes('/')
-      ? this.putRoutes.set(
-          this.path + path,
-          new Route(this.path + path, 'PUT', middleware, callback),
-        )
+      ? this.putRoutes.set(path, new Route(path, 'PUT', middleware, callback))
       : this.putRoutes.set(
-          this.path + '/' + path,
-          new Route(this.path + '/' + path, 'PUT', middleware, callback),
+          '/' + path,
+          new Route('/' + path, 'PUT', middleware, callback),
         );
   }
 
@@ -152,22 +110,14 @@ export class Router {
     const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
     const callback = args.length > 1 ? args[args.length - 1] : args[0];
 
-    if (path === '/') {
-      this.patchRoutes.set(
-        this.path,
-        new Route(this.path, 'PATCH', middleware, callback),
-      );
-      return;
-    }
-
     path.includes('/')
       ? this.patchRoutes.set(
-          this.path + path,
-          new Route(this.path + path, 'PATCH', middleware, callback),
+          path,
+          new Route(path, 'PATCH', middleware, callback),
         )
       : this.patchRoutes.set(
-          this.path + '/' + path,
-          new Route(this.path + '/' + path, 'PATCH', middleware, callback),
+          '/' + path,
+          new Route('/' + path, 'PATCH', middleware, callback),
         );
   }
 
@@ -181,22 +131,14 @@ export class Router {
     const middleware = args.length > 1 ? args.slice(0, args.length - 1) : [];
     const callback = args.length > 1 ? args[args.length - 1] : args[0];
 
-    if (path === '/') {
-      this.deleteRoutes.set(
-        this.path,
-        new Route(this.path, 'DELETE', middleware, callback),
-      );
-      return;
-    }
-
     path.includes('/')
       ? this.deleteRoutes.set(
-          this.path + path,
-          new Route(this.path + path, 'DELETE', middleware, callback),
+          path,
+          new Route(path, 'DELETE', middleware, callback),
         )
       : this.deleteRoutes.set(
-          this.path + '/' + path,
-          new Route(this.path + '/' + path, 'DELETE', middleware, callback),
+          '/' + path,
+          new Route('/' + path, 'DELETE', middleware, callback),
         );
   }
 
@@ -208,16 +150,58 @@ export class Router {
     return await executeMiddleware(middleware, req, res);
   }
 
-  async execute(ctx: ICtx, nestedUrl?: string): Promise<any> {
-    let middlewareDone = false;
-
+  private matchRoute(
+    ctx: ICtx,
+    methodRouter: Map<string, Route>,
+  ): Route | undefined {
     if (ctx.req.url.endsWith('/')) {
-      ctx.req.url = ctx.req.url.slice(0, -1);
+      ctx.req.url = ctx.req.url.slice(0, ctx.req.url.length - 1);
     }
 
-    const splitUrl = ctx.req.url.split('/');
-    const routerUrl = '/' + splitUrl[1];
-    const nestedRouterUrl = '/' + splitUrl[2];
+    const url = ctx.req.url;
+    const segments = url.split('/').filter((segment) => segment !== '');
+
+    if (segments.length === 0) {
+      return methodRouter.get('/');
+    }
+
+    for (const [path, route] of methodRouter) {
+      if (route.params) {
+        const routeSegments = path
+          .split('/')
+          .filter((segment) => segment !== '');
+
+        if (routeSegments.length !== segments.length) {
+          continue;
+        }
+
+        const params: { [key: string]: string } = {};
+
+        for (let i = 0; i < routeSegments.length; i++) {
+          const routeSegment = routeSegments[i];
+          const segment = segments[i];
+
+          if (routeSegment.startsWith(':')) {
+            params[routeSegment.slice(1)] = segment;
+          } else if (routeSegment !== segment) {
+            break;
+          }
+
+          if (i === routeSegments.length - 1) {
+            ctx.req.params = params;
+            return route;
+          }
+        }
+      } else if (path === url) {
+        return route;
+      }
+    }
+
+    return undefined;
+  }
+
+  async execute(ctx: ICtx): Promise<any> {
+    let middlewareDone = false;
 
     if (!middlewareDone && this.middleware.length) {
       const middlewareResult = await this.handleMiddleware(
@@ -234,23 +218,7 @@ export class Router {
     }
 
     try {
-      if (this.routers.has(routerUrl + nestedRouterUrl)) {
-        const router = this.routers.get(routerUrl + nestedRouterUrl);
-        if (router) {
-          return await router.execute(ctx, routerUrl);
-        }
-      } else if (this.routers.has(routerUrl)) {
-        const router = this.routers.get(routerUrl);
-        if (router) {
-          return await router.execute(ctx);
-        }
-      }
-
       let result: any;
-
-      if (nestedUrl) {
-        ctx.req.url = ctx.req.url.replace(nestedUrl, '');
-      }
 
       const methodMap: { [key: string]: Map<string, Route> } = {
         GET: this.getRoutes,
@@ -260,10 +228,17 @@ export class Router {
         DELETE: this.deleteRoutes,
       };
 
-      const method = methodMap[ctx.req.method];
+      const methodRoutes = methodMap[ctx.req.method];
+      let route: Route | undefined;
 
-      if (method) {
-        result = await executeRoute(ctx, method);
+      if (methodRoutes) {
+        route = this.matchRoute(ctx, methodRoutes);
+
+        if (!route) {
+          return new NotFoundError(ctx.req, ctx.res);
+        }
+
+        result = await route.execute(ctx);
       }
 
       if (result) {
@@ -278,7 +253,10 @@ export class Router {
         return result;
       }
     } catch (e: any) {
-      ctx.logger.error(e);
+      if (ctx.logger) {
+        ctx.logger.error(e);
+      }
+
       return new ServerError(ctx.req, ctx.res, e.message);
     }
   }

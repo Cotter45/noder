@@ -43,6 +43,6 @@ export interface ICtx {
   req: IRequest;
   res: IResponse;
   config: any;
-  logger: any;
+  logger?: any;
   [key: string]: any;
 }

@@ -27,6 +27,11 @@ export async function executeMiddleware(
     if (response) {
       return response;
     }
+
+    if (res && res.headersSent) {
+      return true;
+    }
+
     return false;
   } catch (e: any) {
     return {

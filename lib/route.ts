@@ -17,8 +17,7 @@ import type { ICtx, IRequest, IResponse } from './types';
 export class Route {
   path: string;
   method: string;
-  paramIndex: number | null;
-  paramName: string | null;
+  params?: { [key: string]: number };
   middleware: any[];
   callback: any;
 
@@ -29,16 +28,22 @@ export class Route {
     callback: any,
   ) {
     this.path = path;
+    if (path.includes(':')) {
+      this.params = {};
+      for (let i = 0; i < path.length; i++) {
+        if (path[i] === ':') {
+          let paramName = '';
+          for (let j = i + 1; j < path.length; j++) {
+            if (path[j] === '/') {
+              break;
+            }
+            paramName += path[j];
+          }
+          this.params[paramName] = i;
+        }
+      }
+    }
     this.method = method;
-    this.paramIndex = this.path.includes(':') ? this.path.indexOf(':') : null;
-    this.paramName = this.paramIndex
-      ? this.path.slice(
-          this.paramIndex + 1,
-          path.indexOf('/', this.paramIndex) > 0
-            ? path.indexOf('/', this.paramIndex)
-            : path.length,
-        )
-      : null;
     this.middleware = middleware || [];
     this.callback = callback;
   }
@@ -75,7 +80,10 @@ export class Route {
         alreadySent: true,
       };
     } catch (e: any) {
-      ctx.logger.error(e);
+      if (ctx.logger) {
+        ctx.logger.error(e);
+      }
+
       return new ServerError(ctx.req, ctx.res, e.message);
     }
   }

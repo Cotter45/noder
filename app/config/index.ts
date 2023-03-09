@@ -10,7 +10,9 @@ export const initConfig = () => {
       // add all things to use in ctx like db connections or mocks here
       db,
     },
-    // add any env vars here
+    // add any env vars or config here
+    // logger: true,
+    // fileServer: true,
     keepAliveTimeout: 60000,
     headersTimeout: 60000,
   };
