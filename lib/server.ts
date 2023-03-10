@@ -14,11 +14,14 @@ import type { ICtx, IRequest, IResponse } from './types';
 /**
  * The main server class, adding anything to your config.ctx object will also add it to the ctx object for use within middleware and callbacks.
  * @param config - The server configuration object
+ * @param config.logger - If you want to use the logger. Default false.
+ * @param config.fileServer - If you want to use the file server. Default false.
  * @param config.port - The port you want to use. Default 8000.
  * @param config.host - The host you want to use. Default 0.0.0.0.
  * @param config.ctx - The context object to be passed to all routes and middleware.
  */
 export class Server {
+  declare server: http.Server;
   declare routers: Map<string, Router>;
   declare middleware: any[];
   declare config: { [key: string]: any };
@@ -41,8 +44,6 @@ export class Server {
     if (config.logger) {
       this.logger = logger();
     }
-    this.keepAliveTimeout = config.keepAliveTimeout;
-    this.headersTimeout = config.headersTimeout;
     if (config.fileServer) {
       this.fileServer = true;
       this.static = 'public';
@@ -253,10 +254,16 @@ export class Server {
           body += chunk.toString();
         });
 
-        req.on('end', () => {
-          if (body && req.headers['content-type'] === 'application/json') {
-            resolve(JSON.parse(body));
-          } else resolve({});
+        req.on('end', async () => {
+          const contentType = req.headers['content-type'];
+
+          switch (contentType) {
+            case 'application/json':
+              resolve(JSON.parse(body));
+              break;
+            default:
+              resolve(body);
+          }
         });
       } catch (e) {
         reject(new Error('Internal Server Error'));
@@ -421,14 +428,30 @@ export class Server {
       },
     );
 
-    if (this.keepAliveTimeout) {
-      server.keepAliveTimeout = this.keepAliveTimeout;
-    }
+    this.server = server;
 
-    if (this.headersTimeout) {
-      server.headersTimeout = this.headersTimeout;
-    }
+    process.on('uncaughtException', (err: any) => {
+      console.error(err);
+    });
 
-    return server;
+    process.on('unhandledRejection', (err: any) => {
+      console.error(err);
+    });
+
+    process.once('SIGTERM', () => {
+      this.server.close(() => {
+        console.log('Process terminated');
+      });
+    });
+
+    process.once('SIGINT', () => {
+      this.server.close(() => {
+        console.log('Process terminated');
+      });
+    });
+  }
+
+  public close() {
+    this.server.close();
   }
 }

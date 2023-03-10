@@ -7,8 +7,7 @@ const rl = RL.createInterface({
   output: process.stdout,
 });
 
-// Take in the name of the resource to create routes for
-rl.question('What is the name of the resource? ', (resourceName) => {
+const handleResource = (resourceName: string) => {
   // determine singular and plural versions of the resource name
   const singular = resourceName.endsWith('s')
     ? resourceName.slice(0, -1)
@@ -18,7 +17,7 @@ rl.question('What is the name of the resource? ', (resourceName) => {
     : `${singular}s`;
 
   // create the directory for the resource in app/routes
-  const resourceDir = Path.join(__dirname, '..', 'app', 'routes', resourceName);
+  const resourceDir = Path.join(__dirname, 'app', 'routes', resourceName);
   if (!FS.existsSync(resourceDir)) {
     FS.mkdirSync(resourceDir);
   }
@@ -45,7 +44,7 @@ rl.question('What is the name of the resource? ', (resourceName) => {
 
   // create the index.ts file for the resource
   const indexFile = Path.join(resourceDir, 'index.ts');
-  const indexContent = `import { Router } from '../../lib/router';
+  const indexContent = `import { Router } from '../../../lib/router';
 import * as ${folders[0]} from './${folders[0]}';
 import * as ${folders[1]} from './${folders[1]}';
 import * as ${folders[2]} from './${folders[2]}';
@@ -65,7 +64,7 @@ export default router;
 
   FS.writeFileSync(indexFile, indexContent);
 
-  const handlerContent = `import type { ICtx } from '../../../lib/types';
+  const handlerContent = `import type { ICtx } from '../../../../lib/types';
 
 export const handler = async (ctx: ICtx) => {
   ctx.res.status(200).json({ message: 'Hello World!' });
@@ -79,7 +78,7 @@ export const handler = async (ctx: ICtx) => {
     FS.writeFileSync(handlerFile, handlerContent);
   });
 
-  const validatorContent = `import type { IRequest, IResponse, INextFunction } from '../../../lib/types';
+  const validatorContent = `import type { IRequest, IResponse, INextFunction } from '../../../../lib/types';
 
 export const validator = (
   req: IRequest,
@@ -133,4 +132,7 @@ export * from './validator';
 
   // end readline
   rl.close();
-});
+};
+
+// Take in the name of the resource to create routes for
+rl.question('What is the name of the resource? ', handleResource);

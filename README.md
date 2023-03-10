@@ -3,7 +3,7 @@
 ## What is Noder.js?
 Noder.js is what I'm calling this github repo, you can call it whatever you'd like. This is a bit of a wrapper around a basic Node.js HTTP server. It works very similarly to Express.js but is much more lightweight and ever so slightly more opinionated. There are way to many to check, but so far it's worked with every Express middleware I've tried. It's also very easy to add your own middleware in the same style that Express.js uses.
 
-***I would not recommend using this in production, it's just a fun little project I've been working on.*** Feel free to open PR's or use this project in any way that you see fit.
+***I would not recommend using this in production, it's just a fun little project I've been working on that is currently under development.*** Feel free to open PR's or use this project in any way that you see fit.
 
 ## NPM
 - ```npm i @cotter45/noderjs```
@@ -14,7 +14,7 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 - Simple and easy to use
   - Works essentially the same as Express.js
   - Some notable differences
-    - routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers.
+    - Routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers. There is no app.get(), app.post(), etc. methods, there are only router.get(), router.post(), etc. methods.
     - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, logger (optional with boolean flag in config obj), config and whatever else you want to add to it through config.ctx when config object is passed to the server constructor.
 - Lightweight
   - Only 2 dependencies
@@ -24,12 +24,13 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
   - I've tested it with a few different options, though I can't guarantee it will work with all of them
 - Easy to add your own middleware
 - Small script included in the github repo to generate boilerplate controllers, handlers, tests and validators for a resource
-  - THIS WILL ONLY WORK WITH THE GITHUB TEMPLATE, NOT THE NPM PACKAGE
+  - THIS IS NOT INCLUDED IN THE NPM PACKAGE
   - run with
     - ```npm run generate```
   - The script will prompt you for the name of the resource
   - It will then create all folders and files for basic CRUD inside the routes dir
   - It will NOT automagically add this new router / resource to the main router
+  - The imports are all relative to the 'lib' dir, so if you install this package as a dependency, you'll need to change the imports to the package and delete the 'lib' dir.
 - FAST 
   - Using wrk for testing
 ```typescript
@@ -110,7 +111,7 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
 - Middleware
   - Works with most Express.js middleware, though I can't guarantee it will work with all of them. Middleware takes in the req, res, next arguments.
 ```typescript
-  apiRouter.use(() => {
+  apiRouter.use((req: IRequest, res: IResponse, next: INextFunction) => {
     return {
       status: 418,
       message: "I'm a teapot"
@@ -184,9 +185,6 @@ There is also a dockerfile included if you prefer containerization
   - If you're having issues with static files, make sure they are getting copied into the 'app' dir of your container
 
 ## TODO
-- [ ] Convert the generate script to work from node_modules when packaged
-- [ ] Add more tests
 - [ ] Add more documentation / documentation site ?
 - [ ] Test with more databases
 - [ ] Test with more Express middlewares
-- [ ] Body parsing for more content types
