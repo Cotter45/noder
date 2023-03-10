@@ -1,7 +1,7 @@
-import { Router, NotFoundError, ServerError, Route } from '.';
-import { Request } from './request';
-import { Response } from './response';
-import type { ICtx } from './types';
+import { Router, NotFoundError, ServerError, Route } from '../lib';
+import { Request } from '../lib/request';
+import { Response } from '../lib/response';
+import type { ICtx } from '../lib/types';
 
 describe('Errors', () => {
   describe('NotFoundError', () => {
@@ -470,6 +470,90 @@ describe('Router', () => {
         });
 
         expect(router.getRoutes.size).toBe(1);
+      });
+
+      it('should be able to execute a get route', async () => {
+        const router = new Router('/');
+        router.get('/', () => {
+          return { test: 'test' };
+        });
+
+        expect(router.getRoutes.size).toBe(1);
+
+        const req = {
+          url: '/',
+          method: 'GET',
+        } as any;
+        const res = {} as any;
+
+        const result = await router.execute({ req, res } as any);
+        expect(result).toEqual({ test: 'test' });
+      });
+
+      it('should return 404 if route does not exist', async () => {
+        const router = new Router('/');
+        router.get('/', () => {
+          return { test: 'test' };
+        });
+
+        expect(router.getRoutes.size).toBe(1);
+
+        const req = {
+          url: '/test',
+          method: 'GET',
+        } as any;
+        const res = {
+          status: jest.fn(() => {
+            return {
+              json: jest.fn(),
+            };
+          }),
+        } as any;
+
+        const result = await router.execute({ req, res } as any);
+        expect(result).toBeInstanceOf(Error);
+      });
+
+      it('should be able to execute a get route with params', async () => {
+        const router = new Router('/');
+        router.get('/:test', () => {
+          return { test: 'test' };
+        });
+
+        expect(router.getRoutes.size).toBe(1);
+
+        const req = {
+          url: '/test',
+          method: 'GET',
+        } as any;
+        const res = {} as any;
+
+        const result = await router.execute({ req, res } as any);
+        expect(result).toEqual({ test: 'test' });
+      });
+
+      it('should return 404 if route does not exist with params', async () => {
+        const router = new Router('/');
+        router.get('/:test', () => {
+          return { test: 'test' };
+        });
+
+        expect(router.getRoutes.size).toBe(1);
+
+        const req = {
+          url: '/test/test',
+          method: 'GET',
+        } as any;
+        const res = {
+          status: jest.fn(() => {
+            return {
+              json: jest.fn(),
+            };
+          }),
+        } as any;
+
+        const result = await router.execute({ req, res } as any);
+        expect(result).toBeInstanceOf(Error);
       });
     });
 

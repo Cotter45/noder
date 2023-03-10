@@ -1,15 +1,3 @@
-import { Server } from '../lib';
-import { initConfig } from './config';
-import apiRouter from './routes';
+import server from './config';
 
-const config = initConfig();
-
-/**
- * Server setup and configuration
- */
-const server = new Server(config);
-
-// server.staticDir('build');
-
-server.useRouter(apiRouter);
 server.listen();
