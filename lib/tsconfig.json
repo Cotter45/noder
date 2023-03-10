@@ -7,5 +7,5 @@
     "strict": true,
     "declaration": true
   },
-  "include": ["*.ts"],
+  "include": ["*.ts"]
 }
