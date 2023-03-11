@@ -98,10 +98,15 @@ export class Server {
     res: http.ServerResponse,
   ) => {
     const pathname = req.url;
-    const filePath = !pathname || pathname === '/' ? '/index.html' : pathname;
-    const extname = filePath
+    let filePath = !pathname || pathname === '/' ? '/index.html' : pathname;
+    let extname = filePath
       ? String(path.extname(filePath)).toLowerCase()
       : '.html';
+
+    if (!extname) {
+      filePath = '/index.html';
+      extname = '.html';
+    }
 
     if (!filePath) {
       res.writeHead(404);
@@ -364,10 +369,7 @@ export class Server {
           return;
         }
 
-        if (
-          this.fileServer &&
-          (request.url === '/' || request.url.includes('.'))
-        ) {
+        if (this.fileServer && !request.url.includes('api')) {
           this.serveStatic(req, res);
           return;
         }

@@ -14,6 +14,7 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 - Simple and easy to use
   - Works essentially the same as Express.js
   - Some notable differences
+    - OPINIONATED part - if using the file server, all routes for api must start with /api
     - Routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers. There is no app.get(), app.post(), etc. methods, there are only router.get(), router.post(), etc. methods.
     - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, logger (optional with boolean flag in config obj), config and whatever else you want to add to it through config.ctx when config object is passed to the server constructor.
 - Lightweight
