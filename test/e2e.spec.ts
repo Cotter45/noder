@@ -57,26 +57,7 @@ describe('API', () => {
       expect(res.status).toEqual(500);
       expect(res.body).toHaveProperty('message');
       expect(res.body.message).toEqual('Error Thrown');
-      expect(res.body).toHaveProperty('requestId');
       expect(res.body).toHaveProperty('status');
-    });
-  });
-
-  describe('Logging', () => {
-    it('should return 200 OK from GET /api/logging', async () => {
-      const res = await request('http://127.0.0.1:8000').get('/api/logging');
-
-      expect(res.status).toEqual(200);
-      expect(res.body).toEqual({ message: 'Hello Logging' });
-    });
-
-    it('should return 201 Created from POST /api/logging', async () => {
-      const res = await request('http://127.0.0.1:8000')
-        .post('/api/logging')
-        .send({ message: 'Hello Logging' });
-
-      expect(res.status).toEqual(201);
-      expect(res.body).toEqual({ message: { message: 'Hello Logging' } });
     });
   });
 
@@ -216,7 +197,6 @@ describe('API', () => {
       expect(res.status).toEqual(404);
       expect(res.body).toHaveProperty('message');
       expect(res.body.message).toEqual('Not Found');
-      expect(res.body).toHaveProperty('requestId');
       expect(res.body).toHaveProperty('status');
       expect(res.body.status).toEqual(404);
     });
@@ -229,7 +209,6 @@ describe('API', () => {
       expect(res.status).toEqual(404);
       expect(res.body).toHaveProperty('message');
       expect(res.body.message).toEqual('Not Found');
-      expect(res.body).toHaveProperty('requestId');
       expect(res.body).toHaveProperty('status');
       expect(res.body.status).toEqual(404);
     });

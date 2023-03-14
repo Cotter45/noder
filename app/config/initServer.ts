@@ -1,3 +1,4 @@
+import morgan from 'morgan';
 import { Server } from '../../lib';
 import { initConfig } from './initConfig';
 
@@ -9,6 +10,10 @@ const config = initConfig();
  * Server setup and configuration
  */
 const server = new Server(config);
+
+if (process.env.NODE_ENV !== 'production') {
+  server.use(morgan('dev'));
+}
 // server.staticDir('build');
 server.useRouter(apiRouter);
 

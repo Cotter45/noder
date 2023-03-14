@@ -13,25 +13,16 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 
 - Simple and easy to use
   - Works essentially the same as Express.js
-  - Some notable differences
-    - OPINIONATED part - if using the file server, all routes for api must start with /api
+  - Some notable, opinionated differences
+    - This is purely a json api server, there is no templating engine or functionality built in for redirects, etc. The strongest use case is for serving a SPA app and using the api to get data from the server.
+    - if using the file server, all routes for api must start with /api
     - Routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers. There is no app.get(), app.post(), etc. methods, there are only router.get(), router.post(), etc. methods.
-    - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, logger (optional with boolean flag in config obj), config and whatever else you want to add to it through config.ctx when config object is passed to the server constructor.
+    - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, config and whatever else you want to add to it through config.ctx when config object is passed to the server constructor.
 - Lightweight
-  - Only 2 dependencies
-    - pino for logging
-    - uuid for generating unique ids for each request
+  - 0 dependencies
 - Works with **MOST** Express.js middleware
   - I've tested it with a few different options, though I can't guarantee it will work with all of them
 - Easy to add your own middleware
-- Small script included in the github repo to generate boilerplate controllers, handlers, tests and validators for a resource
-  - THIS IS NOT INCLUDED IN THE NPM PACKAGE
-  - run with
-    - ```npm run generate```
-  - The script will prompt you for the name of the resource
-  - It will then create all folders and files for basic CRUD inside the routes dir
-  - It will NOT automagically add this new router / resource to the main router
-  - The imports are all relative to the 'lib' dir, so if you install this package as a dependency, you'll need to change the imports to the package and delete the 'lib' dir.
 - FAST 
   - Using wrk for testing
 ```typescript
@@ -117,17 +108,6 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
       status: 418,
       message: "I'm a teapot"
     };
-  });
-```
-- Logging 
-  - This is OFF by default, turn it on with - ```new Server({ logger: true })```
-  - Uses pino for logging
-```typescript
-  apiRouter.get('/', (ctx: ICtx) => {
-    ctx.logger.info('TEST');
-    ctx.res.status(200).json({
-      message: 'Hello World'
-    });
   });
 ```
 - Error handling

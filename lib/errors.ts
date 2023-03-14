@@ -14,7 +14,6 @@ export class ServerError extends Error {
     res.status(500).json({
       status: 500,
       message: this.message,
-      requestId: this.request.requestId,
     });
   }
 }
@@ -33,7 +32,6 @@ export class NotFoundError extends Error {
     res.status(404).json({
       status: 404,
       message: this.message,
-      requestId: this.request.requestId,
     });
   }
 }

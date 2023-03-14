@@ -1,5 +1,4 @@
 import * as url from 'url';
-import { v4 as uuidv4 } from 'uuid';
 
 import type { IRequest } from './types';
 import type { IncomingMessage } from 'http';
@@ -31,7 +30,6 @@ export const Request = (req: IncomingMessage, body?: any) => {
     headers: req.headers || {},
     query: query,
     body: body || {},
-    requestId: uuidv4(),
     params: {},
     cookies: req.headers?.cookie ? parseCookies(req.headers.cookie) : {},
   } as IRequest;

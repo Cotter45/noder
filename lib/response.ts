@@ -70,7 +70,6 @@ export const Response = (req: IRequest, res: any) => {
    */
   res.status = (code: number) => {
     res.statusCode = code;
-    res.setHeader('request-id', req.requestId);
     return res;
   };
 
@@ -83,7 +82,6 @@ export const Response = (req: IRequest, res: any) => {
    */
   res.send = (data: any) => {
     res.setHeader('content-type', 'text/plain');
-    res.setHeader('request-id', req.requestId);
     res.write(data);
     res.end();
     return res;
@@ -98,7 +96,6 @@ export const Response = (req: IRequest, res: any) => {
    */
   res.json = (data: any) => {
     res.setHeader('content-type', 'application/json');
-    res.setHeader('request-id', req.requestId);
     res.write(JSON.stringify(data));
     res.end();
     return res;

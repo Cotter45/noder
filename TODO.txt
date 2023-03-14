@@ -1,0 +1,19 @@
+- subscribe method on router 
+  - takes in a path ie /tasks
+  - takes in callbacks 
+    - onConnect
+    - onDisconnect
+    - onMessage
+  - adds the client to a sse map on the router
+
+- unsubscribe method on the router
+  - takes in a path ie /tasks
+  - removes the client from the sse map on the router
+  
+- publish method on the res object 
+  - takes in a path ie /tasks
+  - works similarly to ctx.res.json but instead of sending a json it sends a sse event
+  - client does not need to be subscribed to the path to publish
+  - if the client is subscribed to the path it will receive the event
+  - if the client is not subscribed to the path it will not receive the event
+

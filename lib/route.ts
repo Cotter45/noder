@@ -71,24 +71,8 @@ export class Route {
 
     try {
       const result = await this.callback(ctx);
-
-      if (ctx.res.headersSent) {
-        if (ctx.logger) {
-          ctx.logger.info({
-            path: ctx.req.url,
-            method: ctx.req.method,
-            status: ctx.res.statusCode,
-            requestId: ctx.req.requestId,
-          });
-        }
-      }
-
       return result;
     } catch (e: any) {
-      if (ctx.logger) {
-        ctx.logger.error(e);
-      }
-
       if (!ctx.res.headersSent) {
         new ServerError(ctx.req, ctx.res, e.message);
       }
