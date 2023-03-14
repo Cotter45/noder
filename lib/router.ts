@@ -245,10 +245,6 @@ export class Router {
         return result;
       }
     } catch (e: any) {
-      if (ctx.logger) {
-        ctx.logger.error(e);
-      }
-
       if (!ctx.res.headersSent) {
         return new ServerError(ctx.req, ctx.res, e.message);
       }

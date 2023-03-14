@@ -7,7 +7,6 @@ export interface IRequest extends http.IncomingMessage {
   params: { [key: string]: string };
   query: { [key: string]: string };
   body: any;
-  requestId: string;
   cookies?: { [key: string]: string };
 }
 
@@ -114,7 +113,6 @@ export interface ICtx {
    * @attr attrs - object - The request attrs.
    * @attr query - object - The request query.
    * @attr body - object - The request body.
-   * @attr requestId - string - The request id.
    * @attr cookies - object - The request cookies.
    */
   req: IRequest;

@@ -1,7 +1,6 @@
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
-import logger from 'pino';
 
 import { NotFoundError } from './errors';
 import { Request } from './request';
@@ -14,7 +13,6 @@ import type { ICtx, IRequest, IResponse } from './types';
 /**
  * The main server class, adding anything to your config.ctx object will also add it to the ctx object for use within middleware and callbacks.
  * @param config - The server configuration object
- * @param config.logger - If you want to use the logger. Default false.
  * @param config.fileServer - If you want to use the file server. Default false.
  * @param config.port - The port you want to use. Default 8000.
  * @param config.host - The host you want to use. Default 0.0.0.0.
@@ -26,7 +24,6 @@ export class Server {
   declare middleware: any[];
   declare config: { [key: string]: any };
   declare ctx: { [key: string]: any };
-  declare logger?: any;
   declare fileServer?: boolean;
   declare static: any;
   declare keepAliveTimeout: number;
@@ -41,9 +38,6 @@ export class Server {
       delete config.ctx;
     }
     this.config = config;
-    if (config.logger) {
-      this.logger = logger();
-    }
     if (config.fileServer) {
       this.fileServer = true;
       this.static = 'public';
@@ -98,10 +92,15 @@ export class Server {
     res: http.ServerResponse,
   ) => {
     const pathname = req.url;
-    const filePath = !pathname || pathname === '/' ? '/index.html' : pathname;
-    const extname = filePath
+    let filePath = !pathname || pathname === '/' ? '/index.html' : pathname;
+    let extname = filePath
       ? String(path.extname(filePath)).toLowerCase()
       : '.html';
+
+    if (!extname) {
+      filePath = '/index.html';
+      extname = '.html';
+    }
 
     if (!filePath) {
       res.writeHead(404);
@@ -204,28 +203,8 @@ export class Server {
       return;
     }
 
-    fs.readFile(file, (error, content) => {
-      if (error) {
-        if (error.code === 'ENOENT') {
-          res.writeHead(404);
-          res.end(
-            `Sorry, check with the site admin for error: ${error.code} ..\n`,
-          );
-          res.end();
-        } else {
-          res.writeHead(500);
-          res.end(
-            `Sorry, check with the site admin for error: ${error.code} ..\n`,
-          );
-          res.end();
-        }
-      } else {
-        // add headers for cache
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content, 'utf-8');
-      }
-    });
+    res.writeHead(200, { 'Content-Type': contentType });
+    fs.createReadStream(file).pipe(res);
   };
 
   /**
@@ -345,14 +324,6 @@ export class Server {
             res.status(result.status || 500).json({
               message: result.message || 'Internal Server Error.',
             });
-            if (this.logger) {
-              this.logger.info({
-                method: request.method,
-                url: request.url,
-                status: result.status || res.statusCode,
-                error: result.errorMessage,
-              });
-            }
             return;
           }
           middlewareDone = true;
@@ -364,10 +335,7 @@ export class Server {
           return;
         }
 
-        if (
-          this.fileServer &&
-          (request.url === '/' || request.url.includes('.'))
-        ) {
+        if (this.fileServer && !request.url.includes('api')) {
           this.serveStatic(req, res);
           return;
         }
@@ -379,8 +347,6 @@ export class Server {
           ...this.ctx,
         };
 
-        this.logger ? (ctx.logger = this.logger) : null;
-
         const router = this.matchRouters(ctx);
         if (!router) {
           new NotFoundError(req, res);
@@ -390,15 +356,6 @@ export class Server {
         const result = await router.execute(ctx);
 
         if (result) {
-          if (this.logger) {
-            this.logger.info({
-              path: req.url,
-              method: req.method,
-              status: res.statusCode,
-              requestId: req.requestId,
-            });
-          }
-
           if (ctx.res.headersSent) {
             return;
           }
@@ -409,10 +366,6 @@ export class Server {
         if (!response.headersSent) {
           response.statusCode = 500;
           response.end('Internal Server Error');
-        }
-
-        if (this.logger) {
-          this.logger.error(e);
         }
       }
     });

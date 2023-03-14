@@ -45,7 +45,6 @@ describe('Request', () => {
     expect(req.url).toBe('/test');
     expect(req.query).toEqual({});
     expect(req.body).toStrictEqual({});
-    expect(req.requestId).toBeDefined();
   });
 
   it('should parse query params', () => {
@@ -62,7 +61,6 @@ describe('Request', () => {
       test2: '2',
     });
     expect(req.body).toStrictEqual({});
-    expect(req.requestId).toBeDefined();
   });
 
   it('should parse body params', () => {
@@ -85,7 +83,6 @@ describe('Request', () => {
       test: 1,
       test2: 2,
     });
-    expect(req.requestId).toBeDefined();
   });
 
   it('should handle no url', () => {
@@ -107,7 +104,6 @@ describe('Request', () => {
       test: 1,
       test2: 2,
     });
-    expect(req.requestId).toBeDefined();
   });
 
   it('should parse cookies', () => {
@@ -133,7 +129,6 @@ describe('Request', () => {
       test: 1,
       test2: 2,
     });
-    expect(req.requestId).toBeDefined();
     expect(req.cookies).toEqual({
       test: '1',
       test2: '2',
@@ -211,7 +206,6 @@ describe('Response', () => {
       {
         setHeader: jest.fn(),
         writeHead: jest.fn(),
-        requestId: 'test',
       } as any,
     );
 
@@ -228,7 +222,6 @@ describe('Response', () => {
         writeHead: jest.fn(),
         write: jest.fn(),
         end: jest.fn(),
-        requestId: 'test',
       } as any,
     );
 
@@ -243,7 +236,6 @@ describe('Response', () => {
         writeHead: jest.fn(),
         write: jest.fn(),
         end: jest.fn(),
-        requestId: 'test',
       } as any,
     );
 
@@ -349,9 +341,7 @@ describe('Route', () => {
     expect(route.callback).toBeDefined();
 
     const result = await route.execute({
-      req: {
-        requestId: 'test',
-      },
+      req: {},
       res: {
         status: () => {
           return {
@@ -411,9 +401,7 @@ describe('Route', () => {
     expect(route.callback).toBeDefined();
 
     const result = await route.execute({
-      req: {
-        requestId: 'test',
-      },
+      req: {},
       res: {
         status: () => {
           return {
@@ -1007,7 +995,6 @@ describe('Router', () => {
       req: {
         method: 'GET',
         url: '/test',
-        requestId: 'Test',
       },
       res: {
         headerSent: false,
@@ -1041,7 +1028,6 @@ describe('Router', () => {
       req: {
         method: 'GET',
         url: '/test',
-        requestId: 'Test',
       },
       res: {
         headerSent: false,
@@ -1105,7 +1091,6 @@ describe('Router', () => {
         method: 'GET',
         url: `/${id}`,
         params: {},
-        requestId: 'Test',
       },
       res: {
         headerSent: false,
@@ -1141,7 +1126,6 @@ describe('Router', () => {
         method: 'GET',
         url: `/${id}/test`,
         params: {},
-        requestId: 'Test',
       },
       res: {
         headerSent: false,
