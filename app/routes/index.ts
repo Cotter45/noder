@@ -25,4 +25,23 @@ apiRouter.get('/', (ctx: ICtx) => {
   });
 });
 
+apiRouter.get('/redirect', (ctx: ICtx) => {
+  ctx.res.redirect('/api');
+});
+
+apiRouter.get('/file', (ctx: ICtx) => {
+  ctx.res.sendFile('images/tree.jpeg');
+});
+
+apiRouter.get('/download', (ctx: ICtx) => {
+  ctx.res.download('images/tree.jpeg');
+});
+
+apiRouter.handleError((err, req, res) => {
+  res.status(500).json({
+    message: err.message,
+    location: 'Router Error Handler',
+  });
+});
+
 export default apiRouter;

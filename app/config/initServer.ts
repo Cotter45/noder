@@ -17,4 +17,11 @@ if (process.env.NODE_ENV !== 'production') {
 // server.staticDir('build');
 server.useRouter(apiRouter);
 
+server.handleError((err, req, res) => {
+  res.status(500).json({
+    message: err.message,
+    location: 'Server Error Handler',
+  });
+});
+
 export default server;

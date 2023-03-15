@@ -9,14 +9,16 @@ import type { ICtx, IRequest, IResponse } from './types';
  * @param path - The path of the router. Can not include parameters
  */
 export class Router {
-  path: string;
-  middleware: any[];
-  routers: Map<string, Router>;
-  getRoutes: Map<string, Route>;
-  postRoutes: Map<string, Route>;
-  putRoutes: Map<string, Route>;
-  patchRoutes: Map<string, Route>;
-  deleteRoutes: Map<string, Route>;
+  declare path: string;
+  declare middleware: any[];
+  declare errorHandler: (err: Error, req: IRequest, res: IResponse) => void;
+
+  declare routers: Map<string, Router>;
+  declare getRoutes: Map<string, Route>;
+  declare postRoutes: Map<string, Route>;
+  declare putRoutes: Map<string, Route>;
+  declare patchRoutes: Map<string, Route>;
+  declare deleteRoutes: Map<string, Route>;
 
   constructor(path: string) {
     this.path = path.startsWith('/') ? path : `/${path}`;
@@ -44,6 +46,17 @@ export class Router {
    */
   useRouter(router: Router) {
     this.routers.set(router.path, router);
+  }
+
+  /**
+   * Handles router level errors
+   * @param errorHandler - The error handler you want to use
+   * @returns void
+   */
+  handleError(
+    errorHandler: (err: Error, req: IRequest, res: IResponse) => void,
+  ) {
+    this.errorHandler = errorHandler;
   }
 
   /**
@@ -245,6 +258,9 @@ export class Router {
         return result;
       }
     } catch (e: any) {
+      if (this.errorHandler) {
+        this.errorHandler(e, ctx.req, ctx.res);
+      }
       if (!ctx.res.headersSent) {
         return new ServerError(ctx.req, ctx.res, e.message);
       }

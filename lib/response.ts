@@ -1,6 +1,15 @@
+import * as path from 'path';
+import * as fs from 'fs';
+
+import { mimeTypes } from './mimeTypes';
+
 import type { IRequest, ISetCookie } from './types';
 
-export const Response = (req: IRequest, res: any) => {
+export const Response = (
+  req: IRequest,
+  res: any,
+  files?: { [key: string]: string },
+) => {
   res.req = req;
 
   /**
@@ -74,6 +83,67 @@ export const Response = (req: IRequest, res: any) => {
   };
 
   /**
+   * Sends a file. Must be relative to the static directory.
+   * @param filename - string
+   * @returns - res
+   * @example
+   * ctx.res.sendFile('index.html');
+   */
+  res.sendFile = (filename: string) => {
+    if (!files) {
+      throw new Error('Files not found.');
+    }
+
+    if (!filename.startsWith('/')) {
+      filename = '/' + filename;
+    }
+
+    const file = files[filename];
+
+    if (!file) {
+      throw new Error('File not found.');
+    }
+
+    const ext = path.extname(filename);
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': contentType });
+    fs.createReadStream(file).pipe(res);
+    return res;
+  };
+
+  /**
+   * Sends a file for download. Must be relative to the static directory.
+   * @param filename - string
+   * @returns - res
+   * @example
+   * ctx.res.download('index.html');
+   */
+  res.download = (filename: string) => {
+    if (!files) {
+      throw new Error('Files not found.');
+    }
+
+    if (!filename.startsWith('/')) {
+      filename = '/' + filename;
+    }
+
+    const file = files[filename];
+
+    if (!file) {
+      throw new Error('File not found.');
+    }
+
+    const ext = path.extname(filename);
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    res.writeHead(200, {
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename=${filename}`,
+    });
+    fs.createReadStream(file).pipe(res);
+    return res;
+  };
+
+  /**
    * Sends a text response.
    * @param data - string
    * @returns - res
@@ -83,6 +153,25 @@ export const Response = (req: IRequest, res: any) => {
   res.send = (data: any) => {
     res.setHeader('content-type', 'text/plain');
     res.write(data);
+    res.end();
+    return res;
+  };
+
+  /**
+   * Redirects to a url.
+   * @param url - string
+   * @returns - res
+   * @example
+   * ctx.res.redirect('https://example.com');
+   */
+  res.redirect = (url: string) => {
+    res.statusCode = 302;
+    const host = req.headers.host;
+
+    if (url.startsWith('/')) {
+      url = `http://${host}${url}`;
+    }
+    res.setHeader('Location', url);
     res.end();
     return res;
   };

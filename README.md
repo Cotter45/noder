@@ -14,8 +14,7 @@ Noder.js is what I'm calling this github repo, you can call it whatever you'd li
 - Simple and easy to use
   - Works essentially the same as Express.js
   - Some notable, opinionated differences
-    - This is purely a json api server, there is no templating engine or functionality built in for redirects, etc. The strongest use case is for serving a SPA app and using the api to get data from the server.
-    - if using the file server, all routes for api must start with /api
+    - This is primarily a JSON server. The strongest use case is for serving a SPA app and using the api to get data from the server.
     - Routes can only be added to Router objects, not the Server object. The Server object only has the use() method for adding middleware and useRouter() for adding routers. There is no app.get(), app.post(), etc. methods, there are only router.get(), router.post(), etc. methods.
     - Routes do not accept req, res, next as arguments. This app uses ctx: ICtx instead, which is an object containing req, res, config and whatever else you want to add to it through config.ctx when config object is passed to the server constructor.
 - Lightweight
@@ -91,6 +90,31 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
     });
   });
 ```
+- Redirects
+  - Works similar to Express.js, but you can only input a path or url. The status code will always be 301.
+```typescript
+  apiRouter.get('/redirect', (ctx: ICtx) => {
+    ctx.res.redirect('/api');
+  });
+
+  apiRouter.get('/redirect2', (ctx: ICtx) => {
+    ctx.res.redirect('https://www.google.com');
+  });
+```
+- File serving
+  - Works similar to Express.js, but these files have to have been mapped at runtime and have to be in the "static" folder. The path is relative to the "static" folder you set in the config object, default "public".
+```typescript
+  apiRouter.get('/file', (ctx: ICtx) => {
+    ctx.res.sendFile('/path/to/file');
+  });
+```
+- Download files
+  - Works similar to Express.js, but these files have to have been mapped at runtime and have to be in the "static" folder. The path is relative to the "static" folder you set in the config object, default "public".
+```typescript
+  apiRouter.get('/download', (ctx: ICtx) => {
+    ctx.res.download('/path/to/file');
+  });
+```
 - Params parsed from routes
   - The normal 'gotchas' apply, but it should work as expected
 ```typescript
@@ -153,6 +177,26 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
      * GET /api/test?hello=world
      * returns { "hello": "world" }
      */
+  });
+```
+- Customize server level error handling
+  - This is a method to customize the error handling for the server. It will catch all errors that are not handled by the router, routes, or middleware.
+```typescript
+  server.handleError((err, req, res) => {
+    res.status(500).json({
+      message: err.message,
+      location: 'Server Error Handler',
+    });
+  });
+```
+- Customize router level error handling
+  - This is a method to customize the error handling for the router. It will catch all errors that are not handled by the routes or middleware.
+```typescript
+  apiRouter.handleError((err, req, res) => {
+    res.status(500).json({
+      message: err.message,
+      location: 'Router Error Handler',
+    });
   });
 ```
 
