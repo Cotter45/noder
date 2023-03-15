@@ -14,6 +14,30 @@ describe('API', () => {
       expect(res.status).toEqual(200);
       expect(res.body).toEqual({ message: 'Hello World' });
     });
+
+    it('should return 302 Redirect from GET /api/redirect', async () => {
+      const res = await request('http://127.0.0.1:8000').get('/api/redirect');
+
+      expect(res.status).toEqual(302);
+    });
+
+    it('should return 200 OK from GET /api/file', async () => {
+      const res = await request('http://127.0.0.1:8000').get('/api/file');
+
+      expect(res.status).toEqual(200);
+    });
+
+    it('should return 200 OK from GET /api/download', async () => {
+      const res = await request('http://127.0.0.1:8000').get('/api/download');
+
+      expect(res.status).toEqual(200);
+    });
+
+    it('should return 404 Not Found from GET /api/404', async () => {
+      const res = await request('http://127.0.0.1:8000').get('/api/404');
+
+      expect(res.status).toEqual(404);
+    });
   });
 
   describe('Body', () => {

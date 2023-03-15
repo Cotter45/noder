@@ -78,6 +78,33 @@ export interface IResponse extends http.ServerResponse {
   send: (data: any) => IResponse;
 
   /**
+   * Sends a file. Must be relative to the static directory.
+   * @param filename - string
+   * @returns - res
+   * @example
+   * ctx.res.sendFile('index.html');
+   */
+  sendFile: (filename: string) => IResponse;
+
+  /**
+   * Sends a file for download. Must be relative to the static directory.
+   * @param filename - string
+   * @returns - res
+   * @example
+   * ctx.res.download('index.html');
+   */
+  download: (filename: string) => IResponse;
+
+  /**
+   * Redirects to a url.
+   * @param url - string
+   * @returns - res
+   * @example
+   * ctx.res.redirect('https://example.com');
+   */
+  redirect: (url: string) => IResponse;
+
+  /**
    * Sends a json response.
    * @param data - object
    * @returns - res
