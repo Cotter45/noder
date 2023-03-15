@@ -91,7 +91,7 @@ autocannon -c 100 -d 40 -p 10 http://127.0.0.1:8000/api
   });
 ```
 - Redirects
-  - Works similar to Express.js, but you can only input a path or url. The status code will always be 301.
+  - Works similar to Express.js, but you can only input a path or url. The status code will always be 302.
 ```typescript
   apiRouter.get('/redirect', (ctx: ICtx) => {
     ctx.res.redirect('/api');
