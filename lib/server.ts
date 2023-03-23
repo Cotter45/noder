@@ -45,7 +45,99 @@ export class Server {
       this.static = 'public';
       this.setUpStaticFileMap();
     }
+    this.server = this.generateApp();
   }
+
+  private generateApp = () => {
+    const server = http.createServer(async (request: any, response: any) => {
+      let middlewareDone = false;
+      const req: IRequest = Request(request);
+      let res: IResponse = Response(req, response);
+
+      try {
+        if (request.method === 'OPTIONS') {
+          response.writeHead(204, request.headers);
+          response.end();
+          return;
+        }
+
+        let body: any = {};
+
+        if (request.method !== 'GET' && request.method !== 'HEAD') {
+          body = await this.bodyParser(request);
+        }
+        req.body = body;
+
+        if (this.fileServer) {
+          res = Response(req, response, this.staticFileMap);
+        } else {
+          res = Response(req, response);
+        }
+
+        if (!middlewareDone && this.middleware.length) {
+          const result: any = await this.handleMiddleware(
+            this.middleware,
+            req,
+            res,
+          );
+          if (result) {
+            res.status(result.status || 500).json({
+              message: result.message || 'Internal Server Error.',
+            });
+            return;
+          }
+          middlewareDone = true;
+        }
+
+        if (request.method === 'HEAD') {
+          response.writeHead(200, request.headers);
+          response.end();
+          return;
+        }
+
+        const rootPathname = req.url.split('/')[1];
+
+        if (this.fileServer && !this.routers.has(`/${rootPathname}`)) {
+          this.serveStatic(req, res);
+          return;
+        }
+
+        const ctx: ICtx = {
+          req,
+          res,
+          config: this.config,
+          ...this.ctx,
+        };
+
+        const router = this.matchRouters(ctx);
+        if (!router) {
+          new NotFoundError(req, res);
+          return;
+        }
+
+        const result = await router.execute(ctx);
+
+        if (result) {
+          if (ctx.res.headersSent) {
+            return;
+          }
+
+          return ctx.res.status(result.status || 200).json(result);
+        }
+      } catch (e: any) {
+        if (this.errorHandler) {
+          this.errorHandler(e, req, res);
+          return;
+        }
+        if (!response.headersSent) {
+          response.statusCode = 500;
+          response.end('Internal Server Error');
+        }
+      }
+    });
+
+    return server;
+  };
 
   /**
    * Lists this directory as a static folder
@@ -192,7 +284,7 @@ export class Server {
       ctx.req.url = ctx.req.url.slice(0, -1);
     }
 
-    const segments = ctx.req.url.split('/').filter(Boolean);
+    const segments = ctx.req.segments;
     let currentRouter: Router | undefined = undefined;
 
     for (let i = 0; i < segments.length; i++) {
@@ -206,7 +298,7 @@ export class Server {
         return currentRouter;
       }
 
-      ctx.req.url = ctx.req.url.replace(`/${segments[i]}`, '');
+      ctx.req.segments = ctx.req.segments.slice(1);
       currentRouter = childRouter;
 
       if (currentRouter && currentRouter.routers.size === 0) {
@@ -221,8 +313,18 @@ export class Server {
    * Required to start the server, will listen on the port and host provided or the dafaults.
    * @param port - Defauls to 8000
    * @param host - Defaults to 0.0.0.0
+   * @params callback - Optional callback to run when the server is listening
    */
-  async listen(port?: number, host?: string) {
+  async listen(port?: number, host?: string, callback?: any) {
+    if (!callback) {
+      callback = () => {
+        console.log(
+          '\x1b[33m%s\x1b[0m',
+          `Server listening on port ${port || this.config.port || 8000} 🚀`,
+        );
+      };
+    }
+
     if (this.fileServer) {
       const exists = fs.existsSync(path.resolve(`app/${this.static}`));
 
@@ -240,105 +342,12 @@ export class Server {
         detail: `Because you've specified you want to use the static file server, you should add a root router to the server with the path "/api".`,
       });
     }
-    const server = http.createServer(async (request: any, response: any) => {
-      let middlewareDone = false;
-      const req: IRequest = Request(request);
-      let res: IResponse = Response(req, response);
 
-      try {
-        if (request.method === 'OPTIONS') {
-          response.writeHead(204, request.headers);
-          response.end();
-          return;
-        }
-
-        let body: any = {};
-
-        if (request.method !== 'GET' && request.method !== 'HEAD') {
-          body = await this.bodyParser(request);
-        }
-        req.body = body;
-
-        if (this.fileServer) {
-          res = Response(req, response, this.staticFileMap);
-        } else {
-          res = Response(req, response);
-        }
-
-        if (!middlewareDone && this.middleware.length) {
-          const result: any = await this.handleMiddleware(
-            this.middleware,
-            req,
-            res,
-          );
-          if (result) {
-            res.status(result.status || 500).json({
-              message: result.message || 'Internal Server Error.',
-            });
-            return;
-          }
-          middlewareDone = true;
-        }
-
-        if (request.method === 'HEAD') {
-          response.writeHead(200, request.headers);
-          response.end();
-          return;
-        }
-
-        const rootPathname = req.url.split('/')[1];
-
-        if (this.fileServer && !this.routers.has(`/${rootPathname}`)) {
-          this.serveStatic(req, res);
-          return;
-        }
-
-        const ctx: ICtx = {
-          req,
-          res,
-          config: this.config,
-          ...this.ctx,
-        };
-
-        const router = this.matchRouters(ctx);
-        if (!router) {
-          new NotFoundError(req, res);
-          return;
-        }
-
-        const result = await router.execute(ctx);
-
-        if (result) {
-          if (ctx.res.headersSent) {
-            return;
-          }
-
-          return ctx.res.status(result.status || 200).json(result);
-        }
-      } catch (e: any) {
-        if (this.errorHandler) {
-          this.errorHandler(e, req, res);
-          return;
-        }
-        if (!response.headersSent) {
-          response.statusCode = 500;
-          response.end('Internal Server Error');
-        }
-      }
-    });
-
-    server.listen(
+    this.server.listen(
       port || this.config.port || 8000,
       host || this.config.host || '0.0.0.0',
-      () => {
-        console.log(
-          '\x1b[33m%s\x1b[0m',
-          `Server listening on port ${port || this.config.port || 8000} 🚀`,
-        );
-      },
+      callback(),
     );
-
-    this.server = server;
 
     process.on('uncaughtException', (err: any) => {
       console.error(err);

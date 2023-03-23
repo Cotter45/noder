@@ -9,19 +9,20 @@ const config = initConfig();
 /**
  * Server setup and configuration
  */
-const server = new Server(config);
+const app = new Server(config);
 
 if (process.env.NODE_ENV !== 'production') {
-  server.use(morgan('dev'));
+  app.use(morgan('dev'));
 }
-// server.staticDir('build');
-server.useRouter(apiRouter);
 
-server.handleError((err, req, res) => {
+// server.staticDir('build');
+app.useRouter(apiRouter);
+
+app.handleError((err, req, res) => {
   res.status(500).json({
     message: err.message,
     location: 'Server Error Handler',
   });
 });
 
-export default server;
+export default app;

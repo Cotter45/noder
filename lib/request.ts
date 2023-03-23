@@ -27,6 +27,7 @@ export const Request = (req: IncomingMessage, body?: any) => {
     ...req,
     method: req.method,
     url: pathname,
+    segments: pathname.split('/').filter((s) => s),
     headers: req.headers || {},
     query: query,
     body: body || {},
