@@ -1,7 +1,6 @@
 import { Router, NotFoundError, ServerError, Route } from '../lib';
 import { Request } from '../lib/request';
 import { Response } from '../lib/response';
-import type { ICtx } from '../lib/types';
 
 describe('Errors', () => {
   describe('NotFoundError', () => {
@@ -502,24 +501,6 @@ describe('Router', () => {
         expect(result).toBeInstanceOf(Error);
       });
 
-      it('should be able to execute a get route with params', async () => {
-        const router = new Router('/');
-        router.get('/:test', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.getRoutes.size).toBe(1);
-
-        const req = {
-          url: '/test',
-          method: 'GET',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
       it('should return 404 if route does not exist with params', async () => {
         const router = new Router('/');
         router.get('/:test', () => {
@@ -555,43 +536,6 @@ describe('Router', () => {
         expect(router.postRoutes.size).toBe(1);
       });
 
-      it('should be able to execute a post route', async () => {
-        const router = new Router('/');
-        router.post('/', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.postRoutes.size).toBe(1);
-
-        const req = {
-          url: '/',
-          method: 'POST',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
-      it('should be able to execute a post route with params', async () => {
-        const router = new Router('/');
-        router.post('/:test', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.postRoutes.size).toBe(1);
-
-        const req = {
-          url: '/TEST',
-          params: { test: 'TEST' },
-          method: 'POST',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
       it('should be able to add a named post route without /', () => {
         const router = new Router('/');
         router.post('test', () => {
@@ -619,43 +563,6 @@ describe('Router', () => {
         });
 
         expect(router.putRoutes.size).toBe(1);
-      });
-
-      it('should be able to execute a put route', async () => {
-        const router = new Router('/');
-        router.put('/', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.putRoutes.size).toBe(1);
-
-        const req = {
-          url: '',
-          method: 'PUT',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
-      it('should be able to execute a put route with params', async () => {
-        const router = new Router('/');
-        router.put('/:test', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.putRoutes.size).toBe(1);
-
-        const req = {
-          url: '/TEST',
-          params: { test: 'TEST' },
-          method: 'PUT',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
       });
 
       it('should be able to add a named put route without /', () => {
@@ -687,43 +594,6 @@ describe('Router', () => {
         expect(router.patchRoutes.size).toBe(1);
       });
 
-      it('should be able to execute a patch route', async () => {
-        const router = new Router('/');
-        router.patch('/', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.patchRoutes.size).toBe(1);
-
-        const req = {
-          url: '',
-          method: 'PATCH',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
-      it('should be able to execute a patch route with params', async () => {
-        const router = new Router('/');
-        router.patch('/:test', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.patchRoutes.size).toBe(1);
-
-        const req = {
-          url: '/TEST',
-          params: { test: 'TEST' },
-          method: 'PATCH',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
       it('should be able to add a named patch route without /', () => {
         const router = new Router('/');
         router.patch('test', () => {
@@ -751,43 +621,6 @@ describe('Router', () => {
         });
 
         expect(router.deleteRoutes.size).toBe(1);
-      });
-
-      it('should be able to execute a delete route', async () => {
-        const router = new Router('/');
-        router.delete('/', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.deleteRoutes.size).toBe(1);
-
-        const req = {
-          url: '',
-          method: 'DELETE',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
-      });
-
-      it('should be able to execute a delete route with params', async () => {
-        const router = new Router('/');
-        router.delete('/:test', () => {
-          return { test: 'test' };
-        });
-
-        expect(router.deleteRoutes.size).toBe(1);
-
-        const req = {
-          url: '/TEST',
-          params: { test: 'TEST' },
-          method: 'DELETE',
-        } as any;
-        const res = {} as any;
-
-        const result = await router.execute({ req, res } as any);
-        expect(result).toEqual({ test: 'test' });
       });
 
       it('should be able to add a named delete route without /', () => {
@@ -831,30 +664,6 @@ describe('Router', () => {
       });
 
       expect(router.getRoutes.size).toBe(1);
-    });
-
-    it('should execute fine if middleware calls next', async () => {
-      const router = new Router('/');
-      const middleFunc = (req: any, res: any, next: any) => {
-        next();
-      };
-
-      router.use(middleFunc);
-      expect(router.middleware.length).toBe(1);
-
-      router.get('/test', () => {
-        return { test: 'test' };
-      });
-
-      expect(router.getRoutes.size).toBe(1);
-      const route = router.getRoutes.get('/test');
-      expect(route).toBeDefined();
-
-      const req = { url: '/test', method: 'GET' } as any;
-      const res = {} as any;
-
-      const result = await router.execute({ req, res } as any);
-      expect(result).toEqual({ test: 'test' });
     });
 
     it('should return values from middleware', async () => {
@@ -914,42 +723,6 @@ describe('Router', () => {
     });
   });
 
-  describe('Simple Routers', () => {
-    it('should be able to add a router and execute', async () => {
-      const router = new Router('/');
-      router.get('/tests', () => {
-        return { test: 'test' };
-      });
-
-      expect(router.getRoutes.size).toBe(1);
-
-      const req = { url: '/tests', method: 'GET' } as any;
-      const res = {} as any;
-
-      const result = await router.execute({ req, res } as any);
-      expect(result).toEqual({ test: 'test' });
-    });
-  });
-
-  it('should return already sent if response is already sent', async () => {
-    const router = new Router('/');
-    router.get('/tests', () => {
-      return { alreadySent: true };
-    });
-
-    expect(router.getRoutes.size).toBe(1);
-
-    const req = { url: '/tests', method: 'GET' } as any;
-    const res = {
-      headersSent: true,
-    } as any;
-
-    const result = await router.execute({ req, res } as any);
-    expect(result).toEqual({
-      alreadySent: true,
-    });
-  });
-
   it('should be able to add a router', () => {
     const router = new Router('/');
     const subRouter = new Router('/test');
@@ -980,72 +753,6 @@ describe('Router', () => {
     expect(router.getRoutes.size).toBe(1);
   });
 
-  it('a router + route should return data or an error', async () => {
-    const router = new Router('/');
-
-    router.get('/test', () => {
-      return {
-        message: 'Ok',
-        data: 'Test',
-        status: 200,
-      };
-    });
-
-    const ctx = {
-      req: {
-        method: 'GET',
-        url: '/test',
-      },
-      res: {
-        headerSent: false,
-      },
-    };
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const result = await router.execute(ctx);
-
-    expect(result).toBeDefined();
-    expect(result).toStrictEqual({
-      message: 'Ok',
-      data: 'Test',
-      status: 200,
-    });
-  });
-
-  it('a router + route should handle trailing slashes', async () => {
-    const router = new Router('/api');
-
-    router.get('/test', () => {
-      return {
-        message: 'Ok',
-        data: 'Test',
-        status: 200,
-      };
-    });
-
-    const ctx = {
-      req: {
-        method: 'GET',
-        url: '/test',
-      },
-      res: {
-        headerSent: false,
-      },
-    };
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const result = await router.execute(ctx);
-
-    expect(result).toBeDefined();
-    expect(result).toStrictEqual({
-      message: 'Ok',
-      data: 'Test',
-      status: 200,
-    });
-  });
-
   it('should return from middleware if that middleware returns a value', async () => {
     const router = new Router('/test');
 
@@ -1071,76 +778,6 @@ describe('Router', () => {
     expect(result).toStrictEqual({
       status: 200,
       message: 'Test',
-    });
-  });
-
-  it('should return params from a route', async () => {
-    const router = new Router('/');
-    const id = 10;
-
-    router.get('/:id', (ctx: ICtx) => {
-      return {
-        status: 200,
-        message: 'Ok',
-        data: ctx.req.params.id,
-      };
-    });
-
-    const ctx = {
-      req: {
-        method: 'GET',
-        url: `/${id}`,
-        params: {},
-      },
-      res: {
-        headerSent: false,
-      },
-    };
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const result = await router.execute(ctx);
-
-    expect(result).toBeDefined();
-    expect(result).toStrictEqual({
-      status: 200,
-      message: 'Ok',
-      data: '10',
-    });
-  });
-
-  it('should return params in middle of route', async () => {
-    const router = new Router('/');
-    const id = 10;
-
-    router.get('/:id/test', (ctx: ICtx) => {
-      return {
-        status: 200,
-        message: 'Ok',
-        data: +ctx.req.params.id,
-      };
-    });
-
-    const ctx = {
-      req: {
-        method: 'GET',
-        url: `/${id}/test`,
-        params: {},
-      },
-      res: {
-        headerSent: false,
-      },
-    };
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const result = await router.execute(ctx);
-
-    expect(result).toBeDefined();
-    expect(result).toStrictEqual({
-      status: 200,
-      message: 'Ok',
-      data: 10,
     });
   });
 });

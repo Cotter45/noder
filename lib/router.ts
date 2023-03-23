@@ -172,7 +172,8 @@ export class Router {
       return methodRouter.get('/');
     }
 
-    const segments = url.split('/').filter(Boolean);
+    const segments = ctx.req.segments;
+    const joinedSegments = '/' + segments.join('/');
 
     if (segments.length === 0) {
       return methodRouter.get('/');
@@ -180,7 +181,7 @@ export class Router {
 
     for (const [path, route] of methodRouter) {
       if (route.params) {
-        const routeSegments = path.split('/').filter(Boolean);
+        const routeSegments = route.segments;
 
         if (routeSegments.length !== segments.length) {
           continue;
@@ -205,7 +206,7 @@ export class Router {
           ctx.req.params = params;
           return route;
         }
-      } else if (path === url) {
+      } else if (path === joinedSegments) {
         return route;
       }
     }

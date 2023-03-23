@@ -3,6 +3,7 @@ import * as http from 'http';
 export interface IRequest extends http.IncomingMessage {
   method: string;
   url: string;
+  segments: string[];
   headers: NodeJS.Dict<string | string[]>;
   params: { [key: string]: string };
   query: { [key: string]: string };

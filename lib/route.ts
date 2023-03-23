@@ -16,6 +16,7 @@ import type { ICtx, IRequest, IResponse } from './types';
  */
 export class Route {
   path: string;
+  segments: string[];
   method: string;
   params?: { [key: string]: number };
   middleware: any[];
@@ -28,6 +29,7 @@ export class Route {
     callback: any,
   ) {
     this.path = path;
+    this.segments = path.split('/').filter(Boolean);
     if (path.includes(':')) {
       this.params = {};
       for (let i = 0; i < path.length; i++) {
