@@ -155,28 +155,37 @@ export class Router {
         );
   }
 
-  private async handleMiddleware(
+  async handleMiddleware(
     middleware: any[],
     req: IRequest,
     res: IResponse,
   ): Promise<any> {
     return await executeMiddleware(middleware, req, res);
   }
-  private matchRoute(
+
+  private async matchRoute(
     ctx: ICtx,
     methodRouter: Map<string, Route>,
-  ): Route | undefined {
+  ): Promise<Route | undefined> {
     const url = ctx.req.url;
 
     if (!url || url === '/') {
-      return methodRouter.get('/');
+      const root = methodRouter.get('/');
+      if (root && root.middleware.length > 0) {
+        await this.handleMiddleware(root.middleware, ctx.req, ctx.res);
+      }
+      return root;
     }
 
     const segments = ctx.req.segments;
     const joinedSegments = '/' + segments.join('/');
 
     if (segments.length === 0) {
-      return methodRouter.get('/');
+      const root = methodRouter.get('/');
+      if (root && root.middleware.length > 0) {
+        await this.handleMiddleware(root.middleware, ctx.req, ctx.res);
+      }
+      return root;
     }
 
     for (const [path, route] of methodRouter) {
@@ -204,9 +213,15 @@ export class Router {
 
         if (match) {
           ctx.req.params = params;
+          if (route.middleware && route.middleware.length > 0) {
+            await this.handleMiddleware(route.middleware, ctx.req, ctx.res);
+          }
           return route;
         }
       } else if (path === joinedSegments) {
+        if (route.middleware && route.middleware.length > 0) {
+          await this.handleMiddleware(route.middleware, ctx.req, ctx.res);
+        }
         return route;
       }
     }
@@ -246,7 +261,7 @@ export class Router {
       let route: Route | undefined;
 
       if (methodRoutes) {
-        route = this.matchRoute(ctx, methodRoutes);
+        route = await this.matchRoute(ctx, methodRoutes);
 
         if (!route) {
           return new NotFoundError(ctx.req, ctx.res);

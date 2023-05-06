@@ -9,6 +9,21 @@ import type {
 
 const middlewareRouter = new Router('/middleware');
 
+const midRouter2 = new Router('/mid2');
+
+midRouter2.get('/', (ctx: ICtx) => {
+  ctx.res.status(200).json({
+    message: 'Hello Middleware 2',
+  });
+});
+
+middlewareRouter.use((req: IRequest, res: IResponse, next: INextFunction) => {
+  console.log('Middleware Called');
+  next();
+});
+
+middlewareRouter.useRouter(midRouter2);
+
 middlewareRouter.get('/', (ctx: ICtx) => {
   ctx.res.status(200).json({
     message: 'Hello Middleware',
@@ -25,7 +40,7 @@ middlewareRouter.get('/next', callNext, (ctx: ICtx) => {
   });
 });
 
-const earlyReturn = (req: IRequest, res: IResponse, next: INextFunction) => {
+const earlyReturn = (req: IRequest, res: IResponse) => {
   res.status(200).json({
     message: 'Returned from middleware',
   });
