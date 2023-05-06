@@ -109,7 +109,7 @@ export class Server {
           ...this.ctx,
         };
 
-        const router = this.matchRouters(ctx);
+        const router = await this.matchRouters(ctx);
         if (!router) {
           new NotFoundError(req, res);
           return;
@@ -271,7 +271,7 @@ export class Server {
     });
   };
 
-  private async handleMiddleware(
+  async handleMiddleware(
     middleware: any[],
     req: IRequest,
     res: IResponse,
@@ -279,7 +279,7 @@ export class Server {
     return await executeMiddleware(middleware, req, res);
   }
 
-  private matchRouters(ctx: ICtx): Router | undefined {
+  private async matchRouters(ctx: ICtx): Promise<Router | undefined> {
     if (ctx.req.url.length > 1 && ctx.req.url.endsWith('/')) {
       ctx.req.url = ctx.req.url.slice(0, -1);
     }
@@ -293,6 +293,10 @@ export class Server {
       const childRouter: Router | undefined = currentRouter
         ? currentRouter.routers.get(`/${segment}`)
         : this.routers.get(`/${segment}`);
+
+      if (currentRouter && currentRouter.middleware.length > 0) {
+        await this.handleMiddleware(currentRouter.middleware, ctx.req, ctx.res);
+      }
 
       if (!childRouter) {
         return currentRouter;
